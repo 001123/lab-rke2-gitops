@@ -1,0 +1,42 @@
+# 1. ClusterIssuer Self-Signed ban đầu để tạo chứng chỉ Root CA
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-cluster-issuer
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  selfSigned: {}
+---
+# 2. Chứng chỉ Lab Internal Root CA được ký bởi selfsigned-cluster-issuer
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: lab-root-ca
+  namespace: cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  isCA: true
+  commonName: "Lab Internal Root CA"
+  secretName: lab-root-ca-secret
+  duration: 43800h # 5 years
+  renewBefore: 720h # 30 days
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: selfsigned-cluster-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+# 3. ClusterIssuer CA nội bộ chính dùng để phát hành chứng chỉ TLS cho các Ingress
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: local-ca-issuer
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  ca:
+    secretName: lab-root-ca-secret

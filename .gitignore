@@ -1,0 +1,15 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor & IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary & Secret files
+*.local.yaml
+*.secret.yaml
+*.bak
+*.tmp

@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-demo
+  labels:
+    app.kubernetes.io/name: nginx-demo
+  annotations:
+    cert-manager.io/cluster-issuer: local-ca-issuer
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: demo.192.168.250.2.nip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-demo
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - demo.192.168.250.2.nip.io
+      secretName: nginx-demo-tls

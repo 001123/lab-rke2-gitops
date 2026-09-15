@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: tenant-applications
+  namespace: argocd
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/001123/lab-rke2-gitops.git
+        revision: main
+        directories:
+          - path: apps/*/overlays/staging
+  template:
+    metadata:
+      name: '{{index .path.segments 1}}-staging'
+      labels:
+        environment: staging
+    spec:
+      destination:
+        namespace: '{{index .path.segments 1}}-staging'
