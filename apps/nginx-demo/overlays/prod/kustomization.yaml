@@ -12,7 +12,7 @@ labels:
 
 replicas:
   - name: nginx-demo
-    count: 3
+    count: 2
 
 patches:
   - path: patch-ingress.yaml

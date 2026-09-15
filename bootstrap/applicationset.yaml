@@ -13,14 +13,14 @@ spec:
         repoURL: https://github.com/001123/lab-rke2-gitops.git
         revision: main
         directories:
-          - path: apps/*/overlays/dev
+          - path: apps/*/overlays/*
   template:
     metadata:
-      name: '{{index .path.segments 1}}-dev'
+      name: '{{index .path.segments 1}}-{{index .path.segments 3}}'
       namespace: argocd
       labels:
         app.kubernetes.io/name: '{{index .path.segments 1}}'
-        environment: dev
+        environment: '{{index .path.segments 3}}'
     spec:
       project: default
       source:
@@ -29,7 +29,7 @@ spec:
         path: '{{.path.path}}'
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{index .path.segments 1}}-dev'
+        namespace: '{{index .path.segments 1}}-{{index .path.segments 3}}'
       syncPolicy:
         automated:
           prune: true

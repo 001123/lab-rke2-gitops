@@ -5,6 +5,7 @@ resources:
   - namespace.yaml
   - cluster-issuers.yaml
 
-commonLabels:
-  app.kubernetes.io/part-of: infrastructure
-  app.kubernetes.io/managed-by: gitops
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: infrastructure
+      app.kubernetes.io/managed-by: gitops
