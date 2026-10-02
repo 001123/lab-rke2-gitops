@@ -1,14 +1,14 @@
 # RKE2 GitOps Infrastructure & Application Repository
 
-Hệ thống quản lý cấu hình và tự động hóa triển khai (**GitOps**) cho cụm **RKE2 (Rancher Kubernetes Engine 2)** chạy trên hệ điều hành **openSUSE Leap Micro 6.2**, tích hợp trực tiếp với máy chủ tự động hóa khởi động [**lab-ipxe-os**](/Users/timi/lab/lab-ipxe-os).
+Configuration management and automated deployment (**GitOps**) repository for **RKE2 (Rancher Kubernetes Engine 2)** clusters running on **openSUSE Leap Micro 6.2**, integrated directly with the [**lab-ipxe-os**](/Users/timi/lab/lab-ipxe-os) automated provisioning server.
 
-Hệ thống được thiết kế chạy **đồng thời cả 2 môi trường (Dev & Prod) trên cùng một cụm RKE2 duy nhất** (Single-Cluster Multi-Environment) thông qua cơ chế phân tách Namespace và ApplicationSet.
+The system is designed to run **both environments (Dev & Prod) concurrently on a single RKE2 cluster** (Single-Cluster Multi-Environment) via Namespace isolation and ArgoCD ApplicationSets.
 
 ---
 
-## 1. Kiến Trúc Toàn Trình (Architecture Overview)
+## 1. Architecture Overview
 
-Kiến trúc kết hợp giữa **App-of-Apps** (khởi động nền tảng hạ tầng) và **ApplicationSet** (tự động quét và phát hiện ứng dụng `dev` và `prod`):
+A hybrid architecture combining **App-of-Apps** (bootstrapping core infrastructure) and **ApplicationSet** (automated discovery and deployment of `dev` and `prod` applications):
 
 ```
                               [ Git Repository ]
@@ -21,7 +21,7 @@ Kiến trúc kết hợp giữa **App-of-Apps** (khởi động nền tảng h�
                  ┌────────────────────┴────────────────────┐
                  ▼ (Sync Waves 1-3)                        ▼ (Sync Wave 4)
       [ Infrastructure Apps ]                     [ ApplicationSet ]
-    (Dùng chung toàn cụm cluster)              (tenant-applications)
+   (Cluster-wide shared platform)              (tenant-applications)
                  │                                         │
         ┌────────┴────────┐                       ┌────────┴────────┐
         ▼                 ▼                       ▼                 ▼
@@ -32,66 +32,66 @@ Kiến trúc kết hợp giữa **App-of-Apps** (khởi động nền tảng h�
 
 ---
 
-## 2. Cấu Trúc Thư Mục Tối Giản & Chuẩn Hóa
+## 2. Standardized & Streamlined Directory Structure
 
 ```
 lab-rke2-gitops/
-├── README.md                           # Tài liệu hướng dẫn kiến trúc và vận hành
-├── .gitignore                          # Loại trừ các file tạm và secrets
+├── README.md                           # Architecture and operations documentation
+├── .gitignore                          # Ignores temporary files and secrets
 ├── scripts/
-│   └── validate.sh                     # Script kiểm tra tính hợp lệ cú pháp Kustomize (100% pass)
-├── bootstrap/                          # Điểm neo nạp Root Application của ArgoCD (gitops_path: bootstrap)
-│   ├── root-app.yaml                   # Manifest khởi tạo Root Application
-│   ├── kustomization.yaml              # Bundle toàn bộ bootstrap
-│   ├── infrastructure-apps.yaml        # ArgoCD Apps nạp nền tảng hạ tầng (Waves 1-3)
-│   └── applicationset.yaml             # ApplicationSet tự động sinh <app>-dev và <app>-prod (Wave 4)
-├── infrastructure/                     # Nền tảng hệ thống cốt lõi (Cluster-scoped, dùng chung)
+│   └── validate.sh                     # Kustomize syntax validation script (100% pass)
+├── bootstrap/                          # ArgoCD Root Application entrypoint (gitops_path: bootstrap)
+│   ├── root-app.yaml                   # Root Application bootstrap manifest
+│   ├── kustomization.yaml              # Root bootstrap bundle
+│   ├── infrastructure-apps.yaml        # ArgoCD Apps for infrastructure platform (Waves 1-3)
+│   └── applicationset.yaml             # ApplicationSet generating <app>-dev and <app>-prod (Wave 4)
+├── infrastructure/                     # Core system platform (Cluster-scoped, shared)
 │   ├── local-path-provisioner/         # Dynamic StorageClass (Rancher Local Path)
 │   │   ├── kustomization.yaml
-│   │   └── local-path-provisioner.yaml # hostPath: /var/local-path-provisioner (an toàn trên Btrfs)
-│   └── cert-manager/                   # Tự động hóa phát hành và gia hạn chứng chỉ SSL/TLS
+│   │   └── local-path-provisioner.yaml # hostPath: /var/local-path-provisioner (Btrfs safe)
+│   └── cert-manager/                   # Automated SSL/TLS certificate issuance and renewal
 │       ├── kustomization.yaml
 │       ├── namespace.yaml
 │       └── cluster-issuers.yaml        # Self-Signed Root CA & Local CA ClusterIssuer
-└── apps/                               # Các ứng dụng dịch vụ người dùng (Workloads)
-    └── nginx-demo/                     # Ứng dụng mẫu NGINX có Traefik Ingress + TLS tự động
+└── apps/                               # Workloads & user-facing services
+    └── nginx-demo/                     # Sample NGINX app with Traefik Ingress + automated TLS
         ├── base/
         │   ├── kustomization.yaml
         │   ├── deployment.yaml
         │   ├── service.yaml
         │   └── ingress.yaml
         └── overlays/
-            ├── dev/                    # Môi trường Dev (1 replica, dev-demo.192.168.250.2.nip.io)
+            ├── dev/                    # Dev environment (1 replica, dev-demo.192.168.250.2.nip.io)
             │   ├── kustomization.yaml
             │   └── patch-ingress.yaml
-            └── prod/                   # Môi trường Prod (2 replicas, demo.192.168.250.2.nip.io)
+            └── prod/                   # Prod environment (2 replicas, demo.192.168.250.2.nip.io)
                 ├── kustomization.yaml
                 └── patch-ingress.yaml
 ```
 
 ---
 
-## 3. Điểm Nổi Bật & Tối Ưu Cho openSUSE Leap Micro 6.2
+## 3. Key Highlights & openSUSE Leap Micro 6.2 Optimizations
 
-1. **An Toàn Cho Hệ Thống Btrfs Transactional (Read-only Rootfs)**:
-   - openSUSE Leap Micro 6.2 bảo vệ hệ thống với rootfs `/` ở chế độ read-only.
-   - `local-path-provisioner` được cấu hình ghi dữ liệu Persistent Volumes vào `/var/local-path-provisioner` (phân vùng con của `/var` ghi độc lập), đảm bảo các Pod yêu cầu lưu trữ dữ liệu (PVC) không bao giờ bị lỗi `Read-only file system`.
-   - Cung cấp StorageClass `local-path` mặc định toàn cụm (`storageclass.kubernetes.io/is-default-class: "true"`).
+1. **Btrfs Transactional (Read-only Rootfs) Safety**:
+   - openSUSE Leap Micro 6.2 protects the operating system with a read-only rootfs (`/`).
+   - `local-path-provisioner` is configured to persist volumes under `/var/local-path-provisioner` (a writable Btrfs subvolume under `/var`), ensuring Pod Persistent Volume Claims (PVC) never encounter `Read-only file system` errors.
+   - Provides a cluster-wide default StorageClass `local-path` (`storageclass.kubernetes.io/is-default-class: "true"`).
 
-2. **Thứ Tự Đồng Bộ (Sync Waves)**:
-   - **Wave 1**: `local-path-provisioner` sẵn sàng trước để cụm có Storage.
-   - **Wave 2**: `cert-manager` controller và CRD được cài đặt từ Helm Chart Jetstack chính thức (`v1.16.2`).
-   - **Wave 3**: Khởi tạo `selfsigned-cluster-issuer` và `local-ca-issuer` ngay sau khi CRD cert-manager đã nạp xong.
-   - **Wave 4**: `ApplicationSet` kích hoạt, tự động nạp các ứng dụng nghiệp vụ trong `apps/` cho cả 2 môi trường `dev` và `prod`. Mọi Ingress gắn annotation `cert-manager.io/cluster-issuer: local-ca-issuer` sẽ lập tức được tự động cấp chứng chỉ TLS.
+2. **Deterministic Sync Order (Sync Waves)**:
+   - **Wave 1**: `local-path-provisioner` deploys first to make dynamic storage available.
+   - **Wave 2**: `cert-manager` controller and CRDs install from the official Jetstack Helm chart (`v1.16.2`).
+   - **Wave 3**: Creates `selfsigned-cluster-issuer` and `local-ca-issuer` once the cert-manager CRDs are fully loaded and operational.
+   - **Wave 4**: `ApplicationSet` activates, automatically discovering and deploying workloads under `apps/` across both `dev` and `prod` environments. Any Ingress annotated with `cert-manager.io/cluster-issuer: local-ca-issuer` is immediately issued a valid TLS certificate.
 
-3. **Traefik Ingress Tích Hợp Sẵn**:
-   - RKE2 mặc định tích hợp Traefik Ingress Controller. Ingress của ứng dụng sử dụng `ingressClassName: traefik` và phân luồng tên miền wildcard `*.192.168.250.2.nip.io`.
+3. **Built-in Traefik Ingress**:
+   - RKE2 bundles the Traefik Ingress Controller by default. Ingress resources use `ingressClassName: traefik` and route using wildcard domain naming: `*.192.168.250.2.nip.io`.
 
 ---
 
-## 4. Tích Hợp Vào Máy Chủ Tự Động Hóa `lab-ipxe-os`
+## 4. Integration with `lab-ipxe-os` Provisioner
 
-Trong file `config/hosts.yaml` của dự án `lab-ipxe-os`, cấu hình node RKE2 trỏ đường dẫn cực kỳ ngắn gọn và sạch sẽ:
+In `config/hosts.yaml` of the `lab-ipxe-os` project, configure the RKE2 node with clean, concise GitOps settings:
 
 ```yaml
 hosts:
@@ -103,12 +103,12 @@ hosts:
     custom:
       rke2_ingress: "traefik"
       rke2_cni: "canal"
-      # Kích hoạt ArgoCD kết nối trực tiếp vào GitOps repo:
+      # Enable ArgoCD and connect directly to the GitOps repo:
       argocd: true
       argocd_hostname: "argocd.192.168.250.2.nip.io"
       gitops_repo: "https://github.com/001123/lab-rke2-gitops.git"
       gitops_branch: "main"
-      gitops_path: "bootstrap"    # <-- Không bị force vào dev, tự nạp cả dev & prod
+      gitops_path: "bootstrap"    # <-- Pointing to bootstrap loads both dev & prod
     network:
       dhcp: false
       ip: "192.168.250.2"
@@ -119,16 +119,16 @@ hosts:
       target_disk: "/dev/sda"
 ```
 
-Khi node cài đặt xong qua iPXE:
-- RKE2 tự khởi động và nạp manifest ArgoCD tại `/var/lib/rancher/rke2/server/manifests/argocd.yaml`.
-- ArgoCD kéo thư mục `bootstrap` từ repo `https://github.com/001123/lab-rke2-gitops.git`.
-- Cụm tự động dựng hạ tầng (`local-path`, `cert-manager`) và tự động deploy song song cả `nginx-demo-dev` và `nginx-demo-prod`!
+Once the node completes its iPXE unattended installation:
+- RKE2 starts up and automatically loads the ArgoCD manifest at `/var/lib/rancher/rke2/server/manifests/argocd.yaml`.
+- ArgoCD clones the `bootstrap` path from `https://github.com/001123/lab-rke2-gitops.git`.
+- The cluster bootstraps core infrastructure (`local-path`, `cert-manager`) and concurrently deploys both `nginx-demo-dev` and `nginx-demo-prod`!
 
 ---
 
-## 5. Danh Mục Địa Chỉ Truy Cập (Domain: 192.168.250.2.nip.io)
+## 5. Service Directory & Ingress URLs (Domain: 192.168.250.2.nip.io)
 
-| Ứng Dụng | Môi Trường | Replica | Địa Chỉ URL Truy Cập | Namespace |
+| Application | Environment | Replicas | Access URL | Namespace |
 | :--- | :--- | :--- | :--- | :--- |
 | **ArgoCD Dashboard** | System | 1 | `http://argocd.192.168.250.2.nip.io` | `argocd` |
 | **Demo NGINX** | **Dev** | 1 | `https://dev-demo.192.168.250.2.nip.io` | `nginx-demo-dev` |
@@ -136,20 +136,20 @@ Khi node cài đặt xong qua iPXE:
 
 ---
 
-## 6. Hướng Dẫn Vận Hành Thường Ngày
+## 6. Daily Operations Guide
 
-### Kiểm Tra Cú Pháp Toàn Bộ Manifest
+### Validate All Manifests
 ```bash
 ./scripts/validate.sh
 ```
 
-### Thêm Một Ứng Dụng Mới (Ví Dụ: `myapp`)
-1. Tạo thư mục: `apps/myapp/base/`, `apps/myapp/overlays/dev/`, `apps/myapp/overlays/prod/`.
-2. Định nghĩa manifests K8s và `kustomization.yaml`.
-3. Push lên Git:
+### Adding a New Application (e.g., `myapp`)
+1. Create directories: `apps/myapp/base/`, `apps/myapp/overlays/dev/`, `apps/myapp/overlays/prod/`.
+2. Define the Kubernetes manifests and `kustomization.yaml` files.
+3. Commit and push to Git:
    ```bash
    git add apps/myapp
    git commit -m "feat: add myapp workload"
    git push origin main
    ```
-4. **ApplicationSet** sẽ tự động phát hiện và sinh ngay 2 ứng dụng: `myapp-dev` và `myapp-prod` trên ArgoCD mà bạn không cần cấu hình thêm bất kỳ file nào khác.
+4. **ApplicationSet** will automatically detect the new application and deploy both `myapp-dev` and `myapp-prod` to ArgoCD without any manual configuration changes.
