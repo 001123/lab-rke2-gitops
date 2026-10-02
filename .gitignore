@@ -13,3 +13,8 @@ Thumbs.db
 *.secret.yaml
 *.bak
 *.tmp
+
+# Kubeconfig
+kubeconfig
+kubeconfig*
+*.kubeconfig

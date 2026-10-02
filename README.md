@@ -136,7 +136,55 @@ Once the node completes its iPXE unattended installation:
 
 ---
 
-## 6. Daily Operations Guide
+## 6. Cluster Access & Kubectl Setup
+
+> [!NOTE]
+> The `kubeconfig` file contains sensitive cluster credentials and is excluded from Git tracking via `.gitignore`. You must provide this file locally to interact with the cluster using `kubectl`.
+
+### Quick Setup (One-Liner via SSH)
+
+Fetch the kubeconfig directly from the RKE2 node, replace the localhost loopback address (`127.0.0.1`) with the node's LAN IP (`192.168.250.2`), and secure file permissions:
+
+```bash
+# Fetch and patch kubeconfig into repository root
+ssh root@192.168.250.2 "cat /etc/rancher/rke2/rke2.yaml" | sed 's/127.0.0.1/192.168.250.2/g' > ./kubeconfig
+chmod 600 ./kubeconfig
+
+# Export KUBECONFIG for your current terminal session
+export KUBECONFIG=$(pwd)/kubeconfig
+```
+
+### Manual Setup Steps
+
+If configuring manually or copying via SCP:
+1. Copy `/etc/rancher/rke2/rke2.yaml` from the node (`192.168.250.2`).
+2. Edit the cluster server address:
+   ```yaml
+   # Change:
+   server: https://127.0.0.1:6443
+   # To:
+   server: https://192.168.250.2:6443
+   ```
+3. Save the file as `./kubeconfig` in the root of this repository.
+4. Set permissions and export the environment variable:
+   ```bash
+   chmod 600 ./kubeconfig
+   export KUBECONFIG=$(pwd)/kubeconfig
+   ```
+
+### Verify Cluster Connectivity
+
+```bash
+# Check cluster node status
+kubectl get nodes -o wide
+
+# Check all running workloads across dev, prod, and system namespaces
+kubectl get pods -A
+```
+
+---
+
+## 7. Daily Operations Guide
 
 ### Validate All Manifests
 ```bash
@@ -153,3 +201,4 @@ Once the node completes its iPXE unattended installation:
    git push origin main
    ```
 4. **ApplicationSet** will automatically detect the new application and deploy both `myapp-dev` and `myapp-prod` to ArgoCD without any manual configuration changes.
+
