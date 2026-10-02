@@ -4,4 +4,4 @@ metadata:
   name: cert-manager
   labels:
     app.kubernetes.io/name: cert-manager
-    app.kubernetes.io/part-of: infrastructure
+    app.kubernetes.io/part-of: platform

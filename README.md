@@ -1,4 +1,4 @@
-# RKE2 GitOps Infrastructure & Application Repository
+# RKE2 GitOps Platform & Application Repository
 
 Configuration management and automated deployment (**GitOps**) repository for **RKE2 (Rancher Kubernetes Engine 2)** clusters running on **openSUSE Leap Micro 6.2**, integrated directly with the [**lab-ipxe-os**](/Users/timi/lab/lab-ipxe-os) automated provisioning server.
 
@@ -8,7 +8,7 @@ The system is designed to run **both environments (Dev & Prod) concurrently on a
 
 ## 1. Architecture Overview
 
-A hybrid architecture combining **App-of-Apps** (bootstrapping core infrastructure) and **ApplicationSet** (automated discovery and deployment of `dev` and `prod` applications):
+A hybrid architecture combining **App-of-Apps** (bootstrapping core platform services) and **ApplicationSet** (automated discovery and deployment of `dev` and `prod` applications):
 
 ```
                               [ Git Repository ]
@@ -20,7 +20,7 @@ A hybrid architecture combining **App-of-Apps** (bootstrapping core infrastructu
                                       │
                  ┌────────────────────┴────────────────────┐
                  ▼ (Sync Waves 1-3)                        ▼ (Sync Wave 4)
-      [ Infrastructure Apps ]                     [ ApplicationSet ]
+           [ Platform Apps ]                        [ ApplicationSet ]
    (Cluster-wide shared platform)              (tenant-applications)
                  │                                         │
         ┌────────┴────────┐                       ┌────────┴────────┐
@@ -43,9 +43,9 @@ lab-rke2-gitops/
 ├── bootstrap/                          # ArgoCD Root Application entrypoint (gitops_path: bootstrap)
 │   ├── root-app.yaml                   # Root Application bootstrap manifest
 │   ├── kustomization.yaml              # Root bootstrap bundle
-│   ├── infrastructure-apps.yaml        # ArgoCD Apps for infrastructure platform (Waves 1-3)
+│   ├── platform-apps.yaml              # ArgoCD Apps for core platform services (Waves 1-3)
 │   └── applicationset.yaml             # ApplicationSet generating <app>-dev and <app>-prod (Wave 4)
-├── infrastructure/                     # Core system platform (Cluster-scoped, shared)
+├── platform/                           # Core system platform (Cluster-scoped, shared)
 │   ├── local-path-provisioner/         # Dynamic StorageClass (Rancher Local Path)
 │   │   ├── kustomization.yaml
 │   │   └── local-path-provisioner.yaml # hostPath: /var/local-path-provisioner (Btrfs safe)
@@ -122,7 +122,7 @@ hosts:
 Once the node completes its iPXE unattended installation:
 - RKE2 starts up and automatically loads the ArgoCD manifest at `/var/lib/rancher/rke2/server/manifests/argocd.yaml`.
 - ArgoCD clones the `bootstrap` path from `https://github.com/001123/lab-rke2-gitops.git`.
-- The cluster bootstraps core infrastructure (`local-path`, `cert-manager`) and concurrently deploys both `nginx-demo-dev` and `nginx-demo-prod`!
+- The cluster bootstraps core platform services (`local-path`, `cert-manager`) and concurrently deploys both `nginx-demo-dev` and `nginx-demo-prod`!
 
 ---
 

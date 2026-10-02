@@ -30,9 +30,9 @@ echo "=== 1. Tầng Bootstrap ==="
 validate_dir "bootstrap"
 
 echo ""
-echo "=== 2. Tầng Infrastructure ==="
-validate_dir "infrastructure/local-path-provisioner"
-validate_dir "infrastructure/cert-manager"
+echo "=== 2. Tầng Platform ==="
+validate_dir "platform/local-path-provisioner"
+validate_dir "platform/cert-manager"
 
 echo ""
 echo "=== 3. Tầng Applications (Dev & Prod) ==="

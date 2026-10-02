@@ -15,7 +15,7 @@ spec:
   source:
     repoURL: https://github.com/001123/lab-rke2-gitops.git
     targetRevision: main
-    path: infrastructure/local-path-provisioner
+    path: platform/local-path-provisioner
   destination:
     server: https://kubernetes.default.svc
     namespace: local-path-storage
@@ -86,7 +86,7 @@ spec:
   source:
     repoURL: https://github.com/001123/lab-rke2-gitops.git
     targetRevision: main
-    path: infrastructure/cert-manager
+    path: platform/cert-manager
   destination:
     server: https://kubernetes.default.svc
     namespace: cert-manager

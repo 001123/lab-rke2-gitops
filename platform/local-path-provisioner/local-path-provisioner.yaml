@@ -4,7 +4,7 @@ metadata:
   name: local-path-storage
   labels:
     app.kubernetes.io/name: local-path-provisioner
-    app.kubernetes.io/part-of: infrastructure
+    app.kubernetes.io/part-of: platform
 ---
 apiVersion: v1
 kind: ServiceAccount
