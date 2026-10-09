@@ -36,6 +36,7 @@ spec:
         annotations:
           cert-manager.io/cluster-issuer: local-ca-issuer
           traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+          traefik.ingress.kubernetes.io/service.serversscheme: http
         paths:
           - /
         pathType: Prefix
@@ -44,6 +45,8 @@ spec:
               - "{{ argocd_hostname }}"
             secretName: argocd-server-tls
     configs:
+      params:
+        server.insecure: true
       cm:
         kustomize.buildOptions: "--enable-alpha-plugins --enable-exec"
         resource.customizations.health.networking.k8s.io_Ingress: |-
