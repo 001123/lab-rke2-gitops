@@ -166,13 +166,13 @@ To deploy RKE2 and bootstrap GitOps onto a freshly installed Ubuntu Server:
 
 ---
 
-## 6. Service Directory & Ingress URLs (Domain: 192.168.250.2.nip.io)
+## 6. Service Directory & Ingress URLs (Domain: 192.168.250.215.nip.io)
 
 | Application | Environment | Replicas | Access URL | Namespace |
 | :--- | :--- | :--- | :--- | :--- |
-| **ArgoCD Dashboard** | System | 1 | `http://argocd.192.168.250.2.nip.io` | `argocd` |
-| **Demo NGINX** | **Dev** | 1 | `https://dev-demo.192.168.250.2.nip.io` | `nginx-demo-dev` |
-| **Demo NGINX** | **Prod** | 2 | `https://demo.192.168.250.2.nip.io` | `nginx-demo-prod` |
+| **ArgoCD Dashboard** | System | 1 | `http://argocd.192.168.250.215.nip.io` | `argocd` |
+| **Demo NGINX** | **Dev** | 1 | `https://dev-demo.192.168.250.215.nip.io` | `nginx-demo-dev` |
+| **Demo NGINX** | **Prod** | 2 | `https://demo.192.168.250.215.nip.io` | `nginx-demo-prod` |
 
 ---
 

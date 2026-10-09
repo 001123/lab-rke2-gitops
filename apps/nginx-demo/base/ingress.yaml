@@ -10,7 +10,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: demo.192.168.250.2.nip.io
+    - host: demo.192.168.250.215.nip.io
       http:
         paths:
           - path: /
@@ -22,5 +22,5 @@ spec:
                   number: 80
   tls:
     - hosts:
-        - demo.192.168.250.2.nip.io
+        - demo.192.168.250.215.nip.io
       secretName: nginx-demo-tls

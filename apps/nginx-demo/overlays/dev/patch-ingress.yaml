@@ -4,7 +4,7 @@ metadata:
   name: nginx-demo
 spec:
   rules:
-    - host: dev-demo.192.168.250.2.nip.io
+    - host: dev-demo.192.168.250.215.nip.io
       http:
         paths:
           - path: /
@@ -16,5 +16,5 @@ spec:
                   number: 80
   tls:
     - hosts:
-        - dev-demo.192.168.250.2.nip.io
+        - dev-demo.192.168.250.215.nip.io
       secretName: dev-demo-tls
