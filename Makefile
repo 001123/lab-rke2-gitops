@@ -3,7 +3,7 @@
 # ==============================================================================
 
 INVENTORY ?= infra/ansible/inventory/hosts.yml
-KUBECONFIG ?= ./kubeconfig/rke2.yaml
+CLUSTER_KUBECONFIG := $(CURDIR)/kubeconfig/rke2.yaml
 ANSIBLE_DIR ?= infra/ansible
 
 export ANSIBLE_CONFIG = $(ANSIBLE_DIR)/ansible.cfg
@@ -39,14 +39,14 @@ all:
 	ansible-playbook -i $(INVENTORY) $(ANSIBLE_DIR)/playbooks/site.yml
 
 nodes:
-	kubectl --kubeconfig $(KUBECONFIG) get nodes -o wide
+	kubectl --kubeconfig $(CLUSTER_KUBECONFIG) get nodes -o wide
 
 pods:
-	kubectl --kubeconfig $(KUBECONFIG) get pods -A
+	kubectl --kubeconfig $(CLUSTER_KUBECONFIG) get pods -A
 
 argocd-password:
 	@echo -n "ArgoCD admin password: "
-	@kubectl --kubeconfig $(KUBECONFIG) -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d 2>/dev/null || echo "Secret not found or already deleted"
+	@kubectl --kubeconfig $(CLUSTER_KUBECONFIG) -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d 2>/dev/null || echo "Secret not found or already deleted"
 	@echo ""
 
 validate:

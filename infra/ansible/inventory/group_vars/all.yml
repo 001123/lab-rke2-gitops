@@ -28,8 +28,8 @@ gitops_repo_path: "bootstrap"
 argocd_chart_version: "7.7.16"
 
 # --- Kubeconfig trên máy quản trị (Local Machine) ---
-kubeconfig_local_path: "{{ playbook_dir }}/../../kubeconfig/rke2.yaml"
-kubeconfig_compat_path: "{{ playbook_dir }}/../../kubeconfig/kubeconfig"
+kubeconfig_local_path: "{{ playbook_dir }}/../../../kubeconfig/rke2.yaml"
+kubeconfig_compat_path: "{{ playbook_dir }}/../../../kubeconfig/kubeconfig"
 
 # --- SOPS / Age Key Configuration ---
 sops_age_key_local_path: "{{ lookup('env', 'HOME') }}/.config/sops/age/keys.txt"
