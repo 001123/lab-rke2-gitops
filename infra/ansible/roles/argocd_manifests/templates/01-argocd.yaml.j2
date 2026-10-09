@@ -33,9 +33,16 @@ spec:
         ingressClassName: traefik
         hostname: "{{ argocd_hostname }}"
         https: false
+        annotations:
+          cert-manager.io/cluster-issuer: local-ca-issuer
+          traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
         paths:
           - /
         pathType: Prefix
+        extraTls:
+          - hosts:
+              - "{{ argocd_hostname }}"
+            secretName: argocd-server-tls
     configs:
       cm:
         resource.customizations.health.networking.k8s.io_Ingress: |-

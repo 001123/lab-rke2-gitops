@@ -8,7 +8,7 @@ ANSIBLE_DIR ?= infra/ansible
 
 export ANSIBLE_CONFIG = $(ANSIBLE_DIR)/ansible.cfg
 
-.PHONY: help ping rke2 gitops all nodes pods argocd-password validate sops-encrypt sops-decrypt
+.PHONY: help ping rke2 gitops all nodes pods argocd-password validate sops-encrypt sops-decrypt sync-ca-mac untrust-ca-mac status-ca-mac
 
 help:
 	@echo "=================================================================="
@@ -24,6 +24,9 @@ help:
 	@echo "  make validate         - Validate all Kustomize GitOps manifests"
 	@echo "  make sops-encrypt     - Encrypt secrets in infra/ansible with SOPS"
 	@echo "  make sops-decrypt     - Decrypt secrets in infra/ansible with SOPS"
+	@echo "  make sync-ca-mac      - Export Cluster Root CA & trust in macOS Keychain"
+	@echo "  make untrust-ca-mac   - Remove Cluster Root CA from macOS Keychain"
+	@echo "  make status-ca-mac    - Check Root CA status in cluster & macOS Keychain"
 	@echo "=================================================================="
 
 ping:
@@ -57,3 +60,12 @@ sops-encrypt:
 
 sops-decrypt:
 	sops --decrypt $(ANSIBLE_DIR)/inventory/group_vars/all.sops.yml
+
+sync-ca-mac:
+	@./scripts/sync-ca-mac.sh sync
+
+untrust-ca-mac:
+	@./scripts/sync-ca-mac.sh untrust
+
+status-ca-mac:
+	@./scripts/sync-ca-mac.sh status

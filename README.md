@@ -231,6 +231,21 @@ kubectl get pods -A
 ./scripts/validate.sh
 ```
 
+### Trust Internal Root CA on macOS (Enable HTTPS)
+
+To access cluster Ingress HTTPS endpoints (`https://argocd...`, `https://demo...`, `https://dev-demo...`) on macOS without TLS/SSL warnings:
+
+```bash
+# Export Root CA and install into macOS System Keychain (requires sudo)
+make sync-ca-mac
+
+# Check status of Root CA in cluster & macOS Keychain
+make status-ca-mac
+
+# (Optional) Remove Root CA from macOS Keychain
+make untrust-ca-mac
+```
+
 ### Adding a New Application (e.g., `myapp`)
 1. Create directories: `apps/myapp/base/`, `apps/myapp/overlays/dev/`, `apps/myapp/overlays/prod/`.
 2. Define the Kubernetes manifests and `kustomization.yaml` files.
