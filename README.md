@@ -57,10 +57,16 @@ lab-rke2-gitops/
 │   ├── local-path-provisioner/         # Dynamic StorageClass (Rancher Local Path)
 │   │   ├── kustomization.yaml
 │   │   └── local-path-provisioner.yaml # hostPath: /var/local-path-provisioner (Btrfs safe)
-│   └── cert-manager/                   # Automated SSL/TLS certificate issuance and renewal
-│       ├── kustomization.yaml
-│       ├── namespace.yaml
-│       └── cluster-issuers.yaml        # Self-Signed Root CA & Local CA ClusterIssuer
+│   ├── cert-manager/                   # Automated SSL/TLS certificate issuance and renewal
+│   │   ├── kustomization.yaml
+│   │   ├── namespace.yaml
+│   │   └── cluster-issuers.yaml        # Self-Signed Root CA & Local CA ClusterIssuer
+│   └── monitoring/                     # Observability stack (kube-prometheus-stack + Grafana)
+│       ├── kustomization.yaml          # Kustomize bundle with KSOPS generator
+│       ├── namespace.yaml              # monitoring namespace
+│       ├── ksops-secret-generator.yaml # KSOPS generator for Grafana admin secret
+│       ├── grafana-secret.sops.yaml    # SOPS/Age encrypted Grafana admin credentials
+│       └── values.yaml                 # Helm values for Prometheus, Grafana, Exporters
 └── apps/                               # Workloads & user-facing services
     └── nginx-demo/                     # Sample NGINX app with Traefik Ingress + automated TLS
         ├── base/
@@ -245,6 +251,21 @@ make status-ca-mac
 # (Optional) Remove Root CA from macOS Keychain
 make untrust-ca-mac
 ```
+
+### Observability & Monitoring (Grafana + Prometheus)
+
+The cluster runs a full GitOps-managed `kube-prometheus-stack` with Traefik Ingress and automated TLS:
+
+* **Grafana Web UI**: [https://grafana.192.168.250.215.nip.io](https://grafana.192.168.250.215.nip.io)
+* **Default Username**: `admin`
+* **Admin Password**: Retrieve using SOPS decryption:
+  ```bash
+  make grafana-password
+  ```
+* **Check Status of Pods, PVCs, and Ingress**:
+  ```bash
+  make monitoring
+  ```
 
 ### Adding a New Application (e.g., `myapp`)
 1. Create directories: `apps/myapp/base/`, `apps/myapp/overlays/dev/`, `apps/myapp/overlays/prod/`.

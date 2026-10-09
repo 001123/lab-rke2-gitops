@@ -23,7 +23,7 @@
   ansible.builtin.file:
     path: "{{ sops_age_key_remote_path | dirname }}"
     state: directory
-    owner: root
+    owner: "{{ sops_age_key_owner_uid }}"
     group: root
     mode: "0755"
 
@@ -31,7 +31,15 @@
   ansible.builtin.copy:
     src: "{{ sops_age_key_local_path }}"
     dest: "{{ sops_age_key_remote_path }}"
-    owner: root
+    owner: "{{ sops_age_key_owner_uid }}"
     group: root
     mode: "0600"
   no_log: true
+
+- name: Install ksops binary on remote host
+  ansible.builtin.unarchive:
+    src: "https://github.com/viaduct-ai/kustomize-sops/releases/download/v4.3.3/ksops_4.3.3_Linux_x86_64.tar.gz"
+    dest: "/usr/local/bin"
+    remote_src: true
+    creates: "/usr/local/bin/ksops"
+    mode: "0755"

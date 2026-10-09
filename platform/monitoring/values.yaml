@@ -1,0 +1,149 @@
+# ==============================================================================
+# Values Configuration for kube-prometheus-stack (GitOps Platform Monitoring)
+# Cluster: RKE2 on openSUSE Leap Micro / Ubuntu
+# ==============================================================================
+
+# --- Global & CRD settings ---
+crds:
+  enabled: true
+
+# --- Default Prometheus Rules & Alerts ---
+defaultRules:
+  create: true
+  rules:
+    etcd: false
+    kubeSchedulerAlerting: false
+    kubeSchedulerRecording: false
+    kubeControllerManager: false
+
+# --- Component Scrapers: Tắt các scraper control plane nội bộ của RKE2 ---
+kubeControllerManager:
+  enabled: false
+
+kubeScheduler:
+  enabled: false
+
+kubeEtcd:
+  enabled: false
+
+kubeProxy:
+  enabled: false
+
+# Kubelet & Node metrics bật đầy đủ
+kubelet:
+  enabled: true
+  serviceMonitor:
+    cAdvisor: true
+    probes: true
+
+# --- Alertmanager ---
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+
+# --- Grafana Dashboard & Ingress ---
+grafana:
+  enabled: true
+  # Xác thực qua Kubernetes Secret được giải mã bằng SOPS/Age (KSOPS)
+  admin:
+    existingSecret: grafana-admin-secret
+    userKey: admin-user
+    passwordKey: admin-password
+
+  grafana.ini:
+    server:
+      root_url: https://grafana.192.168.250.215.nip.io
+
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    annotations:
+      cert-manager.io/cluster-issuer: local-ca-issuer
+      traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+    hosts:
+      - grafana.192.168.250.215.nip.io
+    tls:
+      - secretName: grafana-server-tls
+        hosts:
+          - grafana.192.168.250.215.nip.io
+
+  # Persistent Storage trên local-path (Btrfs safe: /var/local-path-provisioner)
+  persistence:
+    enabled: true
+    storageClassName: local-path
+    type: pvc
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi
+    finalizers:
+      - kubernetes.io/pvc-protection
+
+  resources:
+    requests:
+      cpu: 25m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 512Mi
+
+# --- Prometheus Operator & Server ---
+prometheus:
+  enabled: true
+  ingress:
+    enabled: false  # Bảo mật: Giữ nội bộ ClusterIP
+
+  prometheusSpec:
+    replicas: 1
+    retention: 7d
+    retentionSize: 8GiB
+    # Khai báo PVC động qua StorageClass local-path
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: local-path
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1536Mi
+
+# --- Node Exporter ---
+nodeExporter:
+  enabled: true
+
+prometheus-node-exporter:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+
+# --- Kube State Metrics ---
+kubeStateMetrics:
+  enabled: true
+
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi

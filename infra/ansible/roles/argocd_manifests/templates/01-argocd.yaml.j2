@@ -45,7 +45,50 @@ spec:
             secretName: argocd-server-tls
     configs:
       cm:
+        kustomize.buildOptions: "--enable-alpha-plugins --enable-exec"
         resource.customizations.health.networking.k8s.io_Ingress: |-
           hs = {}
           hs.status = "Healthy"
           return hs
+    repoServer:
+      volumes:
+        - name: ksops-bin
+          hostPath:
+            path: /usr/local/bin/ksops
+            type: File
+        - name: sops-age-key
+          hostPath:
+            path: /var/lib/sops-age/age.agekey
+            type: File
+        - name: custom-tools
+          emptyDir: {}
+      volumeMounts:
+        - mountPath: /usr/local/bin/ksops
+          name: ksops-bin
+          readOnly: true
+        - mountPath: /custom-tools
+          name: custom-tools
+        - mountPath: /var/run/secrets/sops/age/keys.txt
+          name: sops-age-key
+          readOnly: true
+      initContainers:
+        - name: install-ksops-plugin
+          image: quay.io/argoproj/argocd:v2.13.3
+          command: ["/bin/sh", "-c"]
+          args:
+            - mkdir -p /custom-tools/kustomize/plugin/viaduct.ai/v1/ksops /custom-tools/bin;
+              cp /usr/local/bin/ksops /custom-tools/bin/ksops;
+              cp /usr/local/bin/ksops /custom-tools/kustomize/plugin/viaduct.ai/v1/ksops/ksops;
+              chmod 755 /custom-tools/bin/ksops /custom-tools/kustomize/plugin/viaduct.ai/v1/ksops/ksops;
+          volumeMounts:
+            - mountPath: /usr/local/bin/ksops
+              name: ksops-bin
+            - mountPath: /custom-tools
+              name: custom-tools
+      env:
+        - name: XDG_CONFIG_HOME
+          value: /custom-tools
+        - name: PATH
+          value: /custom-tools/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+        - name: SOPS_AGE_KEY_FILE
+          value: /var/run/secrets/sops/age/keys.txt

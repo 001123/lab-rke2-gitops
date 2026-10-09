@@ -14,12 +14,17 @@ FAILURES=0
 validate_dir() {
   local dir="$1"
   echo -n "  ▶ Đang kiểm tra: ${dir} ... "
-  if kubectl kustomize "${dir}" > /dev/null 2>&1; then
+  local cmd="kubectl kustomize"
+  if command -v kustomize > /dev/null 2>&1; then
+    cmd="kustomize build --enable-alpha-plugins --enable-exec"
+  fi
+
+  if $cmd "${dir}" > /dev/null 2>&1; then
     echo "✅ HỢP LỆ"
   else
     echo "❌ THẤT BẠI"
     echo "----------------------------------------"
-    kubectl kustomize "${dir}" || true
+    $cmd "${dir}" || true
     echo "----------------------------------------"
     FAILURES=$((FAILURES + 1))
   fi
@@ -33,6 +38,7 @@ echo ""
 echo "=== 2. Tầng Platform ==="
 validate_dir "platform/local-path-provisioner"
 validate_dir "platform/cert-manager"
+validate_dir "platform/monitoring"
 
 echo ""
 echo "=== 3. Tầng Applications (Dev & Prod) ==="

@@ -94,3 +94,70 @@ spec:
     automated:
       prune: true
       selfHeal: true
+
+---
+# ------------------------------------------------------------------------------
+# 4. Monitoring Platform Resources (Namespace & Secret qua KSOPS)
+# ------------------------------------------------------------------------------
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring-resources
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/001123/lab-rke2-gitops.git
+    targetRevision: main
+    path: platform/monitoring
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+# ------------------------------------------------------------------------------
+# 5. Kube-Prometheus-Stack (Prometheus, Grafana, Alertmanager, Exporters)
+# ------------------------------------------------------------------------------
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus-stack
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 92.2.0
+      helm:
+        releaseName: kube-prometheus-stack
+        valueFiles:
+          - $values/platform/monitoring/values.yaml
+    - repoURL: https://github.com/001123/lab-rke2-gitops.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+
