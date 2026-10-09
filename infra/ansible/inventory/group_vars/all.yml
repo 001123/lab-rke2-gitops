@@ -1,0 +1,37 @@
+---
+# ==============================================================================
+# Biến cấu hình chung cho Hạ tầng RKE2 & GitOps ArgoCD
+# ==============================================================================
+
+# --- Tên miền & Ingress (Sử dụng nip.io wildcard DNS động theo IP server) ---
+domain: "{{ ansible_host }}.nip.io"
+argocd_hostname: "argocd.{{ domain }}"
+
+# --- Phiên bản RKE2 và CNI đã thống nhất ---
+rke2_version: "v1.37.1+rke2r1"
+rke2_cni: "canal"
+rke2_channel: "v1.37"
+rke2_install_script_url: "https://get.rke2.io"
+
+# --- Đường dẫn hệ thống RKE2 ---
+rke2_config_dir: "/etc/rancher/rke2"
+rke2_data_dir: "/var/lib/rancher/rke2"
+rke2_manifests_dir: "/var/lib/rancher/rke2/server/manifests"
+
+# --- Nguồn GitOps cho ArgoCD ---
+gitops_repo_url: "https://github.com/001123/lab-rke2-gitops.git"
+gitops_repo_branch: "main"
+gitops_repo_path: "bootstrap"
+
+# --- Phiên bản ArgoCD Helm Chart ---
+# Chart 7.7.16 tương ứng ArgoCD v2.13.x
+argocd_chart_version: "7.7.16"
+
+# --- Kubeconfig trên máy quản trị (Local Machine) ---
+kubeconfig_local_path: "{{ playbook_dir }}/../../kubeconfig/rke2.yaml"
+kubeconfig_compat_path: "{{ playbook_dir }}/../../kubeconfig/kubeconfig"
+
+# --- SOPS / Age Key Configuration ---
+sops_age_key_local_path: "{{ lookup('env', 'HOME') }}/.config/sops/age/keys.txt"
+sops_age_key_remote_path: "/var/lib/sops-age/age.agekey"
+sops_age_key_owner_uid: 999

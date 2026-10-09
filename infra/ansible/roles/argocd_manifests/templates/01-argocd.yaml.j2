@@ -1,0 +1,37 @@
+---
+# ==============================================================================
+# ArgoCD Namespace & HelmChart Deployment Manifest
+# Managed by RKE2 Helm Controller (/var/lib/rancher/rke2/server/manifests/)
+# ==============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+  labels:
+    app.kubernetes.io/name: argocd
+    app.kubernetes.io/part-of: platform
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: argo-cd
+  namespace: kube-system
+spec:
+  chart: argo-cd
+  repo: https://argoproj.github.io/argo-helm
+  version: "{{ argocd_chart_version }}"
+  targetNamespace: argocd
+  createNamespace: true
+  valuesContent: |-
+    global:
+      domain: "{{ argocd_hostname }}"
+    server:
+      extraArgs:
+        - --insecure
+      ingress:
+        enabled: true
+        ingressClassName: traefik
+        hostname: "{{ argocd_hostname }}"
+        paths:
+          - /
+        pathType: Prefix

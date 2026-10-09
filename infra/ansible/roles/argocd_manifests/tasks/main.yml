@@ -1,0 +1,69 @@
+---
+# ==============================================================================
+# Role: argocd_manifests (Deploy ArgoCD & Bootstrap Root Application)
+# ==============================================================================
+
+- name: Ensure RKE2 manifests directory exists
+  ansible.builtin.file:
+    path: "{{ rke2_manifests_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Deploy ArgoCD HelmChart manifest to RKE2
+  ansible.builtin.template:
+    src: 01-argocd.yaml.j2
+    dest: "{{ rke2_manifests_dir }}/01-argocd.yaml"
+    mode: "0644"
+
+- name: Wait for ArgoCD CRD (applications.argoproj.io) to become Established
+  ansible.builtin.command: >-
+    /usr/local/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml
+    wait --for=condition=Established crd/applications.argoproj.io --timeout=360s
+  changed_when: false
+  retries: 15
+  delay: 10
+  register: argocd_crd_wait
+  until: argocd_crd_wait.rc == 0
+
+- name: Deploy Root Bootstrap Application manifest to RKE2
+  ansible.builtin.template:
+    src: 02-root-app.yaml.j2
+    dest: "{{ rke2_manifests_dir }}/02-root-app.yaml"
+    mode: "0644"
+
+- name: Wait for ArgoCD Server deployment rollout
+  ansible.builtin.command: >-
+    /usr/local/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml
+    -n argocd rollout status deployment/argocd-server --timeout=300s
+  changed_when: false
+  failed_when: false
+
+- name: Retrieve initial ArgoCD admin password
+  ansible.builtin.command: >-
+    /usr/local/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml
+    -n argocd get secret argocd-initial-admin-secret
+    -o jsonpath="{.data.password}"
+  register: argocd_admin_secret_raw
+  changed_when: false
+  failed_when: false
+  retries: 10
+  delay: 6
+  until: argocd_admin_secret_raw.rc == 0
+
+- name: Decode ArgoCD admin password
+  ansible.builtin.set_fact:
+    argocd_admin_password: "{{ (argocd_admin_secret_raw.stdout | b64decode) if (argocd_admin_secret_raw.stdout is defined and argocd_admin_secret_raw.stdout != '') else 'Pending secret generation' }}"
+
+- name: Display ArgoCD Access Details
+  ansible.builtin.debug:
+    msg:
+      - "=========================================================="
+      - " ArgoCD GitOps Bootstrap Successfully Initialized!        "
+      - "=========================================================="
+      - " Dashboard URL : http://{{ argocd_hostname }}"
+      - " Username      : admin"
+      - " Password      : {{ argocd_admin_password }}"
+      - " GitOps Repo   : {{ gitops_repo_url }} (branch: {{ gitops_repo_branch }})"
+      - " Sync Path     : {{ gitops_repo_path }}"
+      - "=========================================================="
+  run_once: true

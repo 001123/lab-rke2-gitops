@@ -1,0 +1,12 @@
+---
+# ==============================================================================
+# Playbook: ArgoCD & GitOps Bootstrap Only
+# ==============================================================================
+- name: Deploy ArgoCD Addon Manifests and Root Application
+  hosts: rke2_servers
+  become: true
+  roles:
+    - role: sops_age
+      tags: [sops, age]
+    - role: argocd_manifests
+      tags: [argocd, gitops]

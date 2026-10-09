@@ -1,0 +1,88 @@
+---
+# ==============================================================================
+# Role: common (Ubuntu System Preparation for RKE2)
+# ==============================================================================
+
+- name: Update apt repository cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  when: ansible_os_family == "Debian"
+
+- name: Install required system packages
+  ansible.builtin.apt:
+    name:
+      - curl
+      - tar
+      - open-iscsi
+      - nfs-common
+      - socat
+      - jq
+      - conntrack
+      - iptables
+      - ca-certificates
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Ensure iscsid service is running and enabled
+  ansible.builtin.systemd:
+    name: iscsid
+    state: started
+    enabled: true
+
+- name: Disable swap immediately
+  ansible.builtin.command: swapoff -a
+  changed_when: false
+
+- name: Disable swap permanently in /etc/fstab
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '^([^#].*\s+swap\s+.*)$'
+    replace: '# \1'
+
+- name: Ensure kernel modules load on boot
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/rke2.conf
+    content: |
+      overlay
+      br_netfilter
+    mode: "0644"
+
+- name: Load kernel modules now
+  community.general.modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - overlay
+    - br_netfilter
+
+- name: Configure sysctl settings for Kubernetes networking
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/90-rke2.conf
+    content: |
+      net.bridge.bridge-nf-call-iptables = 1
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.ipv4.ip_forward = 1
+      vm.max_map_count = 262144
+    mode: "0644"
+  register: sysctl_rke2
+
+- name: Apply sysctl settings
+  ansible.builtin.command: sysctl --system
+  when: sysctl_rke2.changed
+  changed_when: true
+
+- name: Ensure local-path-provisioner storage directory exists
+  ansible.builtin.file:
+    path: /var/local-path-provisioner
+    state: directory
+    mode: "0777"
+
+- name: Ensure RKE2 configuration and manifests directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - "{{ rke2_config_dir }}"
+    - "{{ rke2_manifests_dir }}"

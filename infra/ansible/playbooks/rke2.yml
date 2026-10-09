@@ -1,0 +1,12 @@
+---
+# ==============================================================================
+# Playbook: RKE2 Setup Only (OS Preparation & RKE2 Server Bootstrap)
+# ==============================================================================
+- name: Prepare Ubuntu Nodes and Bootstrap RKE2 Cluster
+  hosts: rke2_servers
+  become: true
+  roles:
+    - role: common
+      tags: [common, prep]
+    - role: rke2_server
+      tags: [rke2, server]

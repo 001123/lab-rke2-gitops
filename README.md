@@ -37,7 +37,15 @@ A hybrid architecture combining **App-of-Apps** (bootstrapping core platform ser
 ```
 lab-rke2-gitops/
 ├── README.md                           # Architecture and operations documentation
+├── Makefile                            # Infrastructure orchestration shortcuts (make all, make rke2, ...)
+├── .sops.yaml                          # SOPS & Age encryption rules
 ├── .gitignore                          # Ignores temporary files and secrets
+├── infra/                              # Infrastructure automation layer
+│   └── ansible/                        # Ansible playbooks, roles & inventory for Ubuntu & RKE2
+│       ├── ansible.cfg                 # Ansible configuration (SOPS vars plugin enabled)
+│       ├── inventory/                  # Node IPs (hosts.yml) and variables (group_vars)
+│       ├── playbooks/                  # site.yml, rke2.yml, argocd.yml
+│       └── roles/                      # common, rke2_server, sops_age, argocd_manifests
 ├── scripts/
 │   └── validate.sh                     # Kustomize syntax validation script (100% pass)
 ├── bootstrap/                          # ArgoCD Root Application entrypoint (gitops_path: bootstrap)
@@ -126,7 +134,39 @@ Once the node completes its iPXE unattended installation:
 
 ---
 
-## 5. Service Directory & Ingress URLs (Domain: 192.168.250.2.nip.io)
+## 5. Automated Bootstrap via Ansible (Ubuntu Server)
+
+To deploy RKE2 and bootstrap GitOps onto a freshly installed Ubuntu Server:
+
+1. **Configure Target Node IP**:
+   Edit [hosts.yml](file:///Users/timi/work/on-premise-rke2-gitops/infra/ansible/inventory/hosts.yml) with your Ubuntu Server IP and SSH user (`ubuntu`):
+   ```yaml
+   rke2-node-1:
+     ansible_host: <YOUR_UBUNTU_IP>
+     ansible_user: ubuntu
+   ```
+
+2. **Test Connectivity**:
+   ```bash
+   make ping
+   ```
+
+3. **Deploy OS Tuning + RKE2 + ArgoCD GitOps**:
+   ```bash
+   make all
+   ```
+   *Ansible will configure Ubuntu kernel modules, install RKE2 v1.37.1, fetch `./kubeconfig/rke2.yaml`, and deploy ArgoCD addon manifests.*
+
+4. **Verify Workloads & Access ArgoCD**:
+   ```bash
+   make nodes
+   make pods
+   make argocd-password
+   ```
+
+---
+
+## 6. Service Directory & Ingress URLs (Domain: 192.168.250.2.nip.io)
 
 | Application | Environment | Replicas | Access URL | Namespace |
 | :--- | :--- | :--- | :--- | :--- |
@@ -136,7 +176,7 @@ Once the node completes its iPXE unattended installation:
 
 ---
 
-## 6. Cluster Access & Kubectl Setup
+## 7. Cluster Access & Kubectl Setup
 
 > [!NOTE]
 > The `kubeconfig` file contains sensitive cluster credentials and is excluded from Git tracking via `.gitignore`. You must provide this file locally to interact with the cluster using `kubectl`.
@@ -184,7 +224,7 @@ kubectl get pods -A
 
 ---
 
-## 7. Daily Operations Guide
+## 8. Daily Operations Guide
 
 ### Validate All Manifests
 ```bash

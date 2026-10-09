@@ -1,0 +1,16 @@
+---
+# ==============================================================================
+# SOPS Creation Rules
+# ==============================================================================
+creation_rules:
+  # Encrypt Ansible bootstrap secrets
+  - path_regex: infra/ansible/inventory/group_vars/.*\.sops\.ya?ml$
+    key_groups:
+      - age:
+          - age13hphavvlee240rq0j42j60mqxj8s4k9tp473g076xl5z35p8mgjqx29stw
+
+  # Encrypt Kubernetes workload secrets if any
+  - path_regex: (platform|apps)/.*\.sops\.ya?ml$
+    key_groups:
+      - age:
+          - age13hphavvlee240rq0j42j60mqxj8s4k9tp473g076xl5z35p8mgjqx29stw

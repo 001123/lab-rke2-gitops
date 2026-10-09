@@ -1,0 +1,12 @@
+# ==============================================================================
+# RKE2 Server Configuration File (/etc/rancher/rke2/config.yaml)
+# ==============================================================================
+token: "{{ rke2_token }}"
+cni: "{{ rke2_cni }}"
+write-kubeconfig-mode: "0644"
+
+tls-san:
+  - "{{ ansible_host }}"
+  - "{{ domain }}"
+  - "127.0.0.1"
+  - "localhost"

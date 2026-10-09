@@ -1,0 +1,16 @@
+---
+# ==============================================================================
+# Master Playbook: Full Bootstrap (OS -> RKE2 -> SOPS Age -> ArgoCD GitOps)
+# ==============================================================================
+- name: Prepare Ubuntu Nodes and Bootstrap RKE2 Cluster
+  hosts: rke2_servers
+  become: true
+  roles:
+    - role: common
+      tags: [common, prep]
+    - role: rke2_server
+      tags: [rke2, server]
+    - role: sops_age
+      tags: [sops, age]
+    - role: argocd_manifests
+      tags: [argocd, gitops]
