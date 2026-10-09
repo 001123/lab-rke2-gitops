@@ -25,6 +25,11 @@ spec:
   valuesContent: |-
     global:
       domain: "{{ argocd_hostname }}"
+      networkPolicy:
+        create: false
+    crds:
+      install: true
+      keep: true
     server:
       extraArgs:
         - --insecure
@@ -76,7 +81,7 @@ spec:
           readOnly: true
       initContainers:
         - name: install-ksops-plugin
-          image: quay.io/argoproj/argocd:v2.13.3
+          image: quay.io/argoproj/argocd:v3.5.4
           command: ["/bin/sh", "-c"]
           args:
             - mkdir -p /custom-tools/kustomize/plugin/viaduct.ai/v1/ksops /custom-tools/bin;
