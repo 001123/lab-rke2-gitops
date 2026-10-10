@@ -68,17 +68,29 @@ lab-rke2-gitops/
 │       ├── grafana-secret.sops.yaml    # SOPS/Age encrypted Grafana admin credentials
 │       └── values.yaml                 # Helm values for Prometheus, Grafana, Exporters
 └── apps/                               # Workloads & user-facing services
-    └── nginx-demo/                     # Sample NGINX app with Traefik Ingress + automated TLS
+    ├── nginx-demo/                     # Sample NGINX app with Traefik Ingress + automated TLS
+    │   ├── base/
+    │   │   ├── kustomization.yaml
+    │   │   ├── deployment.yaml
+    │   │   ├── service.yaml
+    │   │   └── ingress.yaml
+    │   └── overlays/
+    │       ├── dev/                    # Dev environment (1 replica, dev-demo.192.168.250.2.nip.io)
+    │       │   ├── kustomization.yaml
+    │       │   └── patch-ingress.yaml
+    │       └── prod/                   # Prod environment (2 replicas, demo.192.168.250.2.nip.io)
+    │           ├── kustomization.yaml
+    │           └── patch-ingress.yaml
+    └── anything-llm/                   # AnythingLLM RAG & AI workspace (Dev environment)
         ├── base/
         │   ├── kustomization.yaml
         │   ├── deployment.yaml
         │   ├── service.yaml
-        │   └── ingress.yaml
+        │   ├── ingress.yaml
+        │   ├── pvc.yaml
+        │   └── secret.yaml
         └── overlays/
-            ├── dev/                    # Dev environment (1 replica, dev-demo.192.168.250.2.nip.io)
-            │   ├── kustomization.yaml
-            │   └── patch-ingress.yaml
-            └── prod/                   # Prod environment (2 replicas, demo.192.168.250.2.nip.io)
+            └── dev/                    # Dev environment (dev-anythingllm.192.168.250.215.nip.io)
                 ├── kustomization.yaml
                 └── patch-ingress.yaml
 ```

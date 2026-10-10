@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: anything-llm
+  labels:
+    app.kubernetes.io/name: anything-llm
+  annotations:
+    cert-manager.io/cluster-issuer: local-ca-issuer
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: anythingllm.192.168.250.215.nip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: anything-llm
+                port:
+                  number: 3001
+  tls:
+    - hosts:
+        - anythingllm.192.168.250.215.nip.io
+      secretName: anything-llm-tls

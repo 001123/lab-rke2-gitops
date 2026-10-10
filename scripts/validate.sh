@@ -45,6 +45,8 @@ echo "=== 3. Tầng Applications (Dev & Prod) ==="
 validate_dir "apps/nginx-demo/base"
 validate_dir "apps/nginx-demo/overlays/dev"
 validate_dir "apps/nginx-demo/overlays/prod"
+validate_dir "apps/anything-llm/base"
+validate_dir "apps/anything-llm/overlays/dev"
 
 echo ""
 if [ "$FAILURES" -eq 0 ]; then

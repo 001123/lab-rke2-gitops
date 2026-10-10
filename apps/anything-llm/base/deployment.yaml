@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: anything-llm
+  labels:
+    app.kubernetes.io/name: anything-llm
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: anything-llm
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: anything-llm
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: anything-llm
+          image: mintplexlabs/anything-llm:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3001
+              protocol: TCP
+          env:
+            - name: SERVER_PORT
+              value: "3001"
+            - name: STORAGE_DIR
+              value: "/app/server/storage"
+            - name: DISABLE_TELEMETRY
+              value: "true"
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: anything-llm-secret
+                  key: JWT_SECRET
+          volumeMounts:
+            - name: storage
+              mountPath: /app/server/storage
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1500m
+              memory: 2Gi
+          livenessProbe:
+            httpGet:
+              path: /api/ping
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/ping
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: anything-llm-storage
