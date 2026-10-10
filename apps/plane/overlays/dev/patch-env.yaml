@@ -5,3 +5,9 @@ metadata:
 data:
   WEB_URL: "https://dev-plane.192.168.250.215.nip.io"
   CORS_ALLOWED_ORIGINS: "http://dev-plane.192.168.250.215.nip.io,https://dev-plane.192.168.250.215.nip.io"
+  ADMIN_BASE_URL: "https://dev-plane.192.168.250.215.nip.io/god-mode/"
+  ADMIN_BASE_PATH: "/god-mode/"
+  SPACE_BASE_URL: "https://dev-plane.192.168.250.215.nip.io/spaces/"
+  SPACE_BASE_PATH: "/spaces/"
+  APP_BASE_URL: "https://dev-plane.192.168.250.215.nip.io/"
+  APP_BASE_PATH: "/"

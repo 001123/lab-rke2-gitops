@@ -36,6 +36,10 @@ spec:
         app.name: plane-ce-admin
     spec:
       serviceAccountName: plane-ce-srv-account
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: plane-ce-admin-nginx-conf
       containers:
         - name: plane-ce-admin
           image: artifacts.plane.so/makeplane/plane-admin:v1.4.2
@@ -45,6 +49,10 @@ spec:
           ports:
             - containerPort: 3000
               name: admin-3000
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
           resources:
             requests:
               cpu: 50m
