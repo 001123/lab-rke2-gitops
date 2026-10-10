@@ -81,18 +81,25 @@ lab-rke2-gitops/
     │       └── prod/                   # Prod environment (2 replicas, demo.192.168.250.2.nip.io)
     │           ├── kustomization.yaml
     │           └── patch-ingress.yaml
-    └── anything-llm/                   # AnythingLLM RAG & AI workspace (Dev environment)
-        ├── base/
-        │   ├── kustomization.yaml
-        │   ├── deployment.yaml
-        │   ├── service.yaml
-        │   ├── ingress.yaml
-        │   ├── pvc.yaml
-        │   └── secret.yaml
+    ├── anything-llm/                   # AnythingLLM RAG & AI workspace (Dev environment)
+    │   ├── base/
+    │   │   ├── kustomization.yaml
+    │   │   ├── deployment.yaml
+    │   │   ├── service.yaml
+    │   │   ├── ingress.yaml
+    │   │   ├── pvc.yaml
+    │   │   └── secret.yaml
+    │   └── overlays/
+    │       └── dev/                    # Dev environment (dev-anythingllm.192.168.250.215.nip.io)
+    │           ├── kustomization.yaml
+    │           └── patch-ingress.yaml
+    └── plane/                          # Plane CE project management platform (Dev environment)
+        ├── base/                       # Declarative K8s manifests (Web, Backend, Space, Live, Admin, DB, Redis, MinIO)
         └── overlays/
-            └── dev/                    # Dev environment (dev-anythingllm.192.168.250.215.nip.io)
+            └── dev/                    # Dev environment (dev-plane.192.168.250.215.nip.io)
                 ├── kustomization.yaml
-                └── patch-ingress.yaml
+                ├── patch-ingress.yaml
+                └── patch-env.yaml
 ```
 
 ---

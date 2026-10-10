@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - service-account.yaml
+  - configmap.yaml
+  - secrets.yaml
+  - database.yaml
+  - redis.yaml
+  - rabbitmq.yaml
+  - minio.yaml
+  - migration-job.yaml
+  - plane-backend.yaml
+  - plane-worker.yaml
+  - plane-web.yaml
+  - plane-space.yaml
+  - plane-admin.yaml
+  - plane-live.yaml
+  - ingress.yaml
+
+labels:
+  - pairs:
+      app.kubernetes.io/name: plane
+      app.kubernetes.io/part-of: plane-ce
+      app.kubernetes.io/managed-by: argocd

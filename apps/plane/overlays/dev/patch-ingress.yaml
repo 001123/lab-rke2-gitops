@@ -1,0 +1,69 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: plane
+spec:
+  rules:
+    - host: dev-plane.192.168.250.215.nip.io
+      http:
+        paths:
+          - path: /spaces
+            pathType: Prefix
+            backend:
+              service:
+                name: plane-ce-space
+                port:
+                  number: 3000
+          - path: /god-mode
+            pathType: Prefix
+            backend:
+              service:
+                name: plane-ce-admin
+                port:
+                  number: 3000
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: plane-ce-api
+                port:
+                  number: 8000
+          - path: /auth
+            pathType: Prefix
+            backend:
+              service:
+                name: plane-ce-api
+                port:
+                  number: 8000
+          - path: /static/
+            pathType: Prefix
+            backend:
+              service:
+                name: plane-ce-api
+                port:
+                  number: 8000
+          - path: /live/
+            pathType: Prefix
+            backend:
+              service:
+                name: plane-ce-live
+                port:
+                  number: 3000
+          - path: /uploads
+            pathType: Prefix
+            backend:
+              service:
+                name: plane-ce-minio
+                port:
+                  number: 9000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: plane-ce-web
+                port:
+                  number: 3000
+  tls:
+    - hosts:
+        - dev-plane.192.168.250.215.nip.io
+      secretName: dev-plane-tls

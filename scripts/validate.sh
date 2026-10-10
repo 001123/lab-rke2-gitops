@@ -47,6 +47,8 @@ validate_dir "apps/nginx-demo/overlays/dev"
 validate_dir "apps/nginx-demo/overlays/prod"
 validate_dir "apps/anything-llm/base"
 validate_dir "apps/anything-llm/overlays/dev"
+validate_dir "apps/plane/base"
+validate_dir "apps/plane/overlays/dev"
 
 echo ""
 if [ "$FAILURES" -eq 0 ]; then

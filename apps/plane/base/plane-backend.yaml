@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: plane-ce-api
+  labels:
+    app.kubernetes.io/name: plane
+    app.kubernetes.io/component: backend
+    app.name: plane-ce-api
+spec:
+  type: ClusterIP
+  ports:
+    - name: api-8000
+      port: 8000
+      protocol: TCP
+      targetPort: 8000
+  selector:
+    app.name: plane-ce-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plane-ce-api-wl
+  labels:
+    app.kubernetes.io/name: plane
+    app.kubernetes.io/component: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.name: plane-ce-api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: plane
+        app.kubernetes.io/component: backend
+        app.name: plane-ce-api
+    spec:
+      serviceAccountName: plane-ce-srv-account
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z -w 2 plane-ce-pgdb 5432; do
+                echo "Waiting for PostgreSQL database on port 5432...";
+                sleep 2;
+              done
+      containers:
+        - name: plane-ce-api
+          image: artifacts.plane.so/makeplane/plane-backend:v1.4.2
+          imagePullPolicy: IfNotPresent
+          stdin: true
+          tty: true
+          command:
+            - ./bin/docker-entrypoint-api.sh
+          ports:
+            - containerPort: 8000
+              name: api-8000
+          envFrom:
+            - configMapRef:
+                name: plane-ce-app-vars
+            - secretRef:
+                name: plane-ce-app-secrets
+            - secretRef:
+                name: plane-ce-doc-store-secrets
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1024Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8000
+              scheme: HTTP
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8000
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 5
