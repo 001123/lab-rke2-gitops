@@ -46,11 +46,11 @@ spec:
                 name: plane-ce-doc-store-secrets
           resources:
             requests:
-              cpu: 50m
-              memory: 128Mi
+              cpu: 100m
+              memory: 256Mi
             limits:
-              cpu: 500m
-              memory: 512Mi
+              cpu: 1000m
+              memory: 1536Mi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -104,4 +104,4 @@ spec:
               memory: 128Mi
             limits:
               cpu: 500m
-              memory: 512Mi
+              memory: 1024Mi
