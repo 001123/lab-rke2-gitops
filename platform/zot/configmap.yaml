@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zot-config
+  namespace: zot
+  labels:
+    app.kubernetes.io/name: zot
+data:
+  config.json: |
+    {
+      "distSpecVersion": "1.1.0-dev",
+      "storage": {
+        "rootDirectory": "/var/lib/registry"
+      },
+      "http": {
+        "address": "0.0.0.0",
+        "port": "5000"
+      },
+      "log": {
+        "level": "info"
+      },
+      "extensions": {
+        "ui": {
+          "enable": true
+        },
+        "search": {
+          "enable": true
+        }
+      }
+    }

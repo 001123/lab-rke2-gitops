@@ -39,6 +39,7 @@ echo "=== 2. Tầng Platform ==="
 validate_dir "platform/local-path-provisioner"
 validate_dir "platform/cert-manager"
 validate_dir "platform/monitoring"
+validate_dir "platform/zot"
 
 echo ""
 echo "=== 3. Tầng Applications (Dev & Prod) ==="
@@ -49,6 +50,8 @@ validate_dir "apps/anything-llm/base"
 validate_dir "apps/anything-llm/overlays/dev"
 validate_dir "apps/plane/base"
 validate_dir "apps/plane/overlays/dev"
+validate_dir "apps/dsh/base"
+validate_dir "apps/dsh/overlays/dev"
 
 echo ""
 if [ "$FAILURES" -eq 0 ]; then

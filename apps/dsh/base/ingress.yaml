@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dsh
+  labels:
+    app.kubernetes.io/name: dsh
+  annotations:
+    cert-manager.io/cluster-issuer: local-ca-issuer
+    traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: dsh.192.168.250.215.nip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: dsh
+                port:
+                  number: 3080
+  tls:
+    - hosts:
+        - dsh.192.168.250.215.nip.io
+      secretName: dsh-tls

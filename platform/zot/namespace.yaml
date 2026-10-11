@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zot
+  labels:
+    app.kubernetes.io/name: zot
+    app.kubernetes.io/part-of: platform

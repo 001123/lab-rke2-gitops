@@ -61,12 +61,20 @@ lab-rke2-gitops/
 │   │   ├── kustomization.yaml
 │   │   ├── namespace.yaml
 │   │   └── cluster-issuers.yaml        # Self-Signed Root CA & Local CA ClusterIssuer
-│   └── monitoring/                     # Observability stack (kube-prometheus-stack + Grafana)
-│       ├── kustomization.yaml          # Kustomize bundle with KSOPS generator
-│       ├── namespace.yaml              # monitoring namespace
-│       ├── ksops-secret-generator.yaml # KSOPS generator for Grafana admin secret
-│       ├── grafana-secret.sops.yaml    # SOPS/Age encrypted Grafana admin credentials
-│       └── values.yaml                 # Helm values for Prometheus, Grafana, Exporters
+│   ├── monitoring/                     # Observability stack (kube-prometheus-stack + Grafana)
+│   │   ├── kustomization.yaml          # Kustomize bundle with KSOPS generator
+│   │   ├── namespace.yaml              # monitoring namespace
+│   │   ├── ksops-secret-generator.yaml # KSOPS generator for Grafana admin secret
+│   │   ├── grafana-secret.sops.yaml    # SOPS/Age encrypted Grafana admin credentials
+│   │   └── values.yaml                 # Helm values for Prometheus, Grafana, Exporters
+│   └── zot/                            # Zot OCI Container Registry + Web UI (Wave 3)
+│       ├── kustomization.yaml
+│       ├── namespace.yaml
+│       ├── pvc.yaml                    # 30Gi local-path storage
+│       ├── configmap.yaml              # OCI specs & Web UI enabled
+│       ├── deployment.yaml
+│       ├── service.yaml
+│       └── ingress.yaml                # registry.192.168.250.215.nip.io
 └── apps/                               # Workloads & user-facing services
     ├── nginx-demo/                     # Sample NGINX app with Traefik Ingress + automated TLS
     │   ├── base/
@@ -93,13 +101,18 @@ lab-rke2-gitops/
     │       └── dev/                    # Dev environment (dev-anythingllm.192.168.250.215.nip.io)
     │           ├── kustomization.yaml
     │           └── patch-ingress.yaml
-    └── plane/                          # Plane CE project management platform (Dev environment)
-        ├── base/                       # Declarative K8s manifests (Web, Backend, Space, Live, Admin, DB, Redis, MinIO)
+    ├── plane/                          # Plane CE project management platform (Dev environment)
+    │   ├── base/                       # Declarative K8s manifests (Web, Backend, Space, Live, Admin, DB, Redis, MinIO)
+    │   └── overlays/
+    │       └── dev/                    # Dev environment (dev-plane.192.168.250.215.nip.io)
+    │           ├── kustomization.yaml
+    │           ├── patch-ingress.yaml
+    │           └── patch-env.yaml
+    └── dsh/                            # DeepSeek Harness Web Agent Platform (Dev environment)
+        ├── docker/                     # Dockerfile & build.sh (OrbStack cross-compile to linux/amd64)
+        ├── base/                       # Deployment, Service, Ingress, PVC 10Gi, Secret
         └── overlays/
-            └── dev/                    # Dev environment (dev-plane.192.168.250.215.nip.io)
-                ├── kustomization.yaml
-                ├── patch-ingress.yaml
-                └── patch-env.yaml
+            └── dev/                    # Dev environment (dev-dsh.192.168.250.215.nip.io)
 ```
 
 ---

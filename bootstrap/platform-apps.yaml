@@ -126,6 +126,35 @@ spec:
 
 ---
 # ------------------------------------------------------------------------------
+# 5. Zot OCI Registry (Internal Container Registry with Web UI)
+# ------------------------------------------------------------------------------
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: zot-registry
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/001123/lab-rke2-gitops.git
+    targetRevision: main
+    path: platform/zot
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: zot
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
+---
+# ------------------------------------------------------------------------------
 # 5. Kube-Prometheus-Stack (Prometheus, Grafana, Alertmanager, Exporters)
 # ------------------------------------------------------------------------------
 apiVersion: argoproj.io/v1alpha1
