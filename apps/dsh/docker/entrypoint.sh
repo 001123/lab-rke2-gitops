@@ -55,5 +55,10 @@ for (const file of walk("/usr/local/lib/node_modules/@deepseek-ai")) {
 }' 2>/dev/null || true
 
 
+# Clean up any stale lock files left over from previous pod terminations
+if [ -d "/root/.dsh" ]; then
+  find /root/.dsh -name "*.lock" -delete 2>/dev/null || true
+fi
+
 echo "🤖 Launching DeepSeek Harness web server on 127.0.0.1:3081 with trusted hosts..."
 exec dsh web --port 3081 --no-open "${TRUSTED_ARGS[@]}"
