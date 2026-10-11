@@ -27,6 +27,40 @@ RUN npm install --global --omit=dev --no-audit --no-fund \
     "@deepseek-ai/dsh@${DSH_VERSION}" \
     && npm cache clean --force
 
+# Patch dsh-client-connection to treat ingress / non-loopback hosts as loopback,
+# allowing Web UI to load and manage Host settings (Models, Providers, API keys)
+RUN node -e '\
+const fs = require("fs"); \
+const path = require("path"); \
+function walk(dir) { \
+  let results = []; \
+  try { \
+    for (const file of fs.readdirSync(dir)) { \
+      const full = path.join(dir, file); \
+      if (fs.statSync(full).isDirectory()) results = results.concat(walk(full)); \
+      else if (file === "client.js" || file === "index.js") results.push(full); \
+    } \
+  } catch (e) {} \
+  return results; \
+} \
+for (const file of walk("/usr/local/lib/node_modules/@deepseek-ai")) { \
+  let content = fs.readFileSync(file, "utf8"); \
+  let modified = false; \
+  if (content.includes("function isLoopbackHostname(hostname) {")) { \
+    content = content.replace("function isLoopbackHostname(hostname) {", "function isLoopbackHostname(hostname) { return true;"); \
+    modified = true; \
+  } \
+  if (content.includes("isLoopback: transport?.ownsHost === true || pageLocation === void 0 || isLoopbackHostname(pageLocation.hostname),")) { \
+    content = content.replace("isLoopback: transport?.ownsHost === true || pageLocation === void 0 || isLoopbackHostname(pageLocation.hostname),", "isLoopback: true,"); \
+    modified = true; \
+  } \
+  if (modified) { \
+    fs.writeFileSync(file, content); \
+    console.log("Patched:", file); \
+  } \
+}'
+
+
 # Create workspace and data directories
 WORKDIR /workspace
 RUN mkdir -p /root/.dsh /workspace
