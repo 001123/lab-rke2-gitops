@@ -31,13 +31,16 @@ spec:
             - name: storage
               mountPath: /workspace
               subPath: workspace
+          env:
+            - name: NODE_OPTIONS
+              value: "--max-old-space-size=6144"
           resources:
             requests:
-              cpu: 250m
-              memory: 512Mi
+              cpu: 500m
+              memory: 1Gi
             limits:
-              cpu: 2000m
-              memory: 2Gi
+              cpu: 4000m
+              memory: 8Gi
           livenessProbe:
             tcpSocket:
               port: http
