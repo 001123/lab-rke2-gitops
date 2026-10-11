@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 FROM node:22-bookworm-slim
 
-# Install system runtime dependencies for coding agent tasks (git, python3, ripgrep, etc.)
+# Install system runtime dependencies for coding agent tasks (git, python3, ripgrep, socat, etc.)
 RUN apt-get update && apt-get install --yes --no-install-recommends \
     build-essential \
     ca-certificates \
@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install --yes --no-install-recommends \
     python3 \
     python3-pip \
     ripgrep \
+    socat \
     tini \
     unzip \
     wget \
@@ -30,12 +31,12 @@ RUN npm install --global --omit=dev --no-audit --no-fund \
 WORKDIR /workspace
 RUN mkdir -p /root/.dsh /workspace
 
-# Web UI configuration environment variables
-ENV HOST=0.0.0.0 \
-    PORT=3080 \
-    NODE_ENV=production
+# Copy proxy entrypoint script
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENV NODE_ENV=production
 
 EXPOSE 3080
 
-ENTRYPOINT ["tini", "--"]
-CMD ["dsh", "web", "--host", "0.0.0.0", "--port", "3080", "--no-open"]
+ENTRYPOINT ["tini", "--", "/usr/local/bin/entrypoint.sh"]

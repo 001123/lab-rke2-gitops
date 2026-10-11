@@ -19,16 +19,12 @@ spec:
       containers:
         - name: dsh
           image: registry.192.168.250.215.sslip.io/dsh:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - name: http
               containerPort: 3080
               protocol: TCP
           env:
-            - name: HOST
-              value: "0.0.0.0"
-            - name: PORT
-              value: "3080"
             - name: DEEPSEEK_API_KEY
               valueFrom:
                 secretKeyRef:
