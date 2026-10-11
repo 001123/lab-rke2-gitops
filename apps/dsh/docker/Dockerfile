@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install --yes --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install pnpm and DeepSeek Harness globally
-ARG DSH_VERSION=latest
+ARG DSH_VERSION=0.2.1-alpha.2
 RUN npm install --global --omit=dev --no-audit --no-fund \
     --allow-scripts=@deepseek-ai/dsh-subprocess-local,koffi,node-pty \
     pnpm \
