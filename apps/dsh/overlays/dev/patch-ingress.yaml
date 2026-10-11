@@ -4,6 +4,16 @@ metadata:
   name: dsh
 spec:
   rules:
+    - host: dev-dsh.192.168.250.215.sslip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: dsh
+                port:
+                  number: 3080
     - host: dev-dsh.192.168.250.215.nip.io
       http:
         paths:
@@ -16,5 +26,6 @@ spec:
                   number: 3080
   tls:
     - hosts:
+        - dev-dsh.192.168.250.215.sslip.io
         - dev-dsh.192.168.250.215.nip.io
       secretName: dev-dsh-tls

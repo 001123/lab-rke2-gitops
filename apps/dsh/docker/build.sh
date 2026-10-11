@@ -5,7 +5,7 @@ set -euo pipefail
 # Build & Push DeepSeek Harness (DSH) Image to Zot Registry
 # ==============================================================================
 
-REGISTRY="${REGISTRY:-registry.192.168.250.215.nip.io}"
+REGISTRY="${REGISTRY:-registry.192.168.250.215.sslip.io}"
 IMAGE_NAME="${IMAGE_NAME:-dsh}"
 TAG="${TAG:-latest}"
 FULL_IMAGE="${REGISTRY}/${IMAGE_NAME}:${TAG}"
