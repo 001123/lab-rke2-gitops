@@ -6,7 +6,6 @@ resources:
   - service.yaml
   - ingress.yaml
   - pvc.yaml
-  - secret.yaml
 
 commonLabels:
   app.kubernetes.io/name: dsh

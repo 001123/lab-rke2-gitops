@@ -11,8 +11,7 @@
 | **Dev** | `dsh-dev` | `https://dev-dsh.192.168.250.215.nip.io` | `local-ca-issuer` | 10Gi (`local-path`) |
 
 - **Container Port**: `3080` (HTTP)
-- **Container Image**: `registry.192.168.250.215.nip.io/dsh:latest` (Được lưu trữ trên Zot OCI Registry nội bộ)
-- **Cấu hình Secret**: Quản lý qua `apps/dsh/base/secret.yaml` (`DEEPSEEK_API_KEY`).
+- **Cấu hình API Key**: Cấu hình trực tiếp qua giao diện Web Settings sau khi đăng nhập.
 
 ---
 

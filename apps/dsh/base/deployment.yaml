@@ -24,12 +24,6 @@ spec:
             - name: http
               containerPort: 3080
               protocol: TCP
-          env:
-            - name: DEEPSEEK_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: dsh-secret
-                  key: DEEPSEEK_API_KEY
           volumeMounts:
             - name: storage
               mountPath: /root/.dsh
