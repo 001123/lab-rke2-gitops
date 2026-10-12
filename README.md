@@ -108,11 +108,15 @@ lab-rke2-gitops/
     │           ├── kustomization.yaml
     │           ├── patch-ingress.yaml
     │           └── patch-env.yaml
-    └── dsh/                            # DeepSeek Harness Web Agent Platform (Dev environment)
-        ├── docker/                     # Dockerfile & build.sh (OrbStack cross-compile to linux/amd64)
-        ├── base/                       # Deployment, Service, Ingress, PVC 10Gi, Secret
+    ├── dsh/                            # DeepSeek Harness Web Agent Platform (Dev environment)
+    │   ├── docker/                     # Dockerfile & build.sh (OrbStack cross-compile to linux/amd64)
+    │   ├── base/                       # Deployment, Service, Ingress, PVC 10Gi, Secret
+    │   └── overlays/
+    │       └── dev/                    # Dev environment (dev-dsh.192.168.250.215.nip.io)
+    └── temporal/                       # Temporal Workflow Engine v1.32.1 + Web UI (Dev environment)
+        ├── base/                       # Server (auto-setup 1.32.1), UI, PostgreSQL 15, Ingress, Secret
         └── overlays/
-            └── dev/                    # Dev environment (dev-dsh.192.168.250.215.nip.io)
+            └── dev/                    # Dev environment (dev-temporal.192.168.250.215.nip.io)
 ```
 
 ---
