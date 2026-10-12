@@ -61,6 +61,30 @@ spec:
         app.kubernetes.io/name: temporal
         app.kubernetes.io/component: server
     spec:
+      initContainers:
+        - name: init-schema
+          image: temporalio/admin-tools:1.32.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: temporal-db-secret
+                  key: POSTGRES_PASSWORD
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Waiting for PostgreSQL..."
+              until nc -z -v -w5 temporal-postgresql 5432; do
+                sleep 2
+              done
+              echo "PostgreSQL is reachable. Ensuring database schemas are up to date..."
+              temporal-sql-tool --plugin postgres12 --ep temporal-postgresql -p 5432 -u temporal --pw "$SQL_PASSWORD" --db temporal setup-schema -v 0.0 || true
+              temporal-sql-tool --plugin postgres12 --ep temporal-postgresql -p 5432 -u temporal --pw "$SQL_PASSWORD" --db temporal update-schema -d /etc/temporal/schema/postgresql/v12/temporal/versioned
+              temporal-sql-tool --plugin postgres12 --ep temporal-postgresql -p 5432 -u temporal --pw "$SQL_PASSWORD" --db temporal_visibility setup-schema -v 0.0 || true
+              temporal-sql-tool --plugin postgres12 --ep temporal-postgresql -p 5432 -u temporal --pw "$SQL_PASSWORD" --db temporal_visibility update-schema -d /etc/temporal/schema/postgresql/v12/visibility/versioned
+              echo "Database schema initialized successfully."
       containers:
         - name: temporal-server
           image: temporalio/server:1.32.1
@@ -79,8 +103,6 @@ spec:
             - name: ringpop-work
               containerPort: 6939
           env:
-            - name: AUTO_SETUP
-              value: "true"
             - name: DB
               value: "postgres12"
             - name: DB_PORT
@@ -107,8 +129,6 @@ spec:
               value: "0.0.0.0"
             - name: TEMPORAL_ADDRESS
               value: "temporal-frontend:7233"
-            - name: DYNAMIC_CONFIG_FILE_PATH
-              value: "config/dynamicconfig/development-cluster.yaml"
           resources:
             requests:
               cpu: 200m
