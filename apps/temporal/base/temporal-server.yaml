@@ -1,4 +1,98 @@
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: temporal-server-config
+  labels:
+    app.kubernetes.io/name: temporal
+    app.kubernetes.io/component: server
+data:
+  temporal.yaml: |
+    log:
+      stdout: true
+      level: info
+
+    persistence:
+      numHistoryShards: 4
+      defaultStore: default
+      visibilityStore: visibility
+      datastores:
+        default:
+          sql:
+            pluginName: "postgres12"
+            databaseName: "temporal"
+            connectAddr: "temporal-postgresql:5432"
+            connectProtocol: "tcp"
+            user: "temporal"
+            password: "temporal_password_123"
+            maxConns: 20
+            maxIdleConns: 20
+            maxConnLifetime: 1h
+        visibility:
+          sql:
+            pluginName: "postgres12"
+            databaseName: "temporal_visibility"
+            connectAddr: "temporal-postgresql:5432"
+            connectProtocol: "tcp"
+            user: "temporal"
+            password: "temporal_password_123"
+            maxConns: 20
+            maxIdleConns: 20
+            maxConnLifetime: 1h
+
+    global:
+      membership:
+        name: temporal
+        maxJoinDuration: 30s
+        broadcastAddress: "127.0.0.1"
+      pprof:
+        port: 7936
+
+    services:
+      frontend:
+        rpc:
+          grpcPort: 7233
+          membershipPort: 6933
+          bindOnIP: "0.0.0.0"
+          broadcastAddress: "127.0.0.1"
+      matching:
+        rpc:
+          grpcPort: 7235
+          membershipPort: 6935
+          bindOnIP: "0.0.0.0"
+          broadcastAddress: "127.0.0.1"
+      history:
+        rpc:
+          grpcPort: 7234
+          membershipPort: 6934
+          bindOnIP: "0.0.0.0"
+          broadcastAddress: "127.0.0.1"
+      worker:
+        rpc:
+          membershipPort: 6939
+          bindOnIP: "0.0.0.0"
+          broadcastAddress: "127.0.0.1"
+
+    clusterMetadata:
+      enableGlobalNamespace: false
+      failoverVersionIncrement: 10
+      masterClusterName: "active"
+      currentClusterName: "active"
+      clusterInformation:
+        active:
+          enabled: true
+          initialFailoverVersion: 1
+          rpcAddress: "127.0.0.1:7233"
+
+    dcRedirectionPolicy:
+      policy: "noop"
+
+    archival:
+      history:
+        state: "disabled"
+      visibility:
+        state: "disabled"
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: temporal-frontend
@@ -89,6 +183,11 @@ spec:
         - name: temporal-server
           image: temporalio/server:1.32.1
           imagePullPolicy: IfNotPresent
+          command:
+            - temporal-server
+            - --config-file
+            - /etc/temporal/config/temporal.yaml
+            - start
           ports:
             - name: grpc-rpc
               containerPort: 7233
@@ -102,33 +201,6 @@ spec:
               containerPort: 6935
             - name: ringpop-work
               containerPort: 6939
-          env:
-            - name: DB
-              value: "postgres12"
-            - name: DB_PORT
-              value: "5432"
-            - name: POSTGRES_SEEDS
-              value: "temporal-postgresql"
-            - name: POSTGRES_USER
-              valueFrom:
-                secretKeyRef:
-                  name: temporal-db-secret
-                  key: POSTGRES_USER
-            - name: POSTGRES_PWD
-              valueFrom:
-                secretKeyRef:
-                  name: temporal-db-secret
-                  key: POSTGRES_PASSWORD
-            - name: DBNAME
-              value: "temporal"
-            - name: VISIBILITY_DBNAME
-              value: "temporal_visibility"
-            - name: DEFAULT_NAMESPACE
-              value: "default"
-            - name: BIND_ON_IP
-              value: "0.0.0.0"
-            - name: TEMPORAL_ADDRESS
-              value: "temporal-frontend:7233"
           resources:
             requests:
               cpu: 200m
@@ -136,15 +208,54 @@ spec:
             limits:
               cpu: 1000m
               memory: 1024Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/temporal/config
           readinessProbe:
             tcpSocket:
               port: 7233
-            initialDelaySeconds: 20
+            initialDelaySeconds: 15
             periodSeconds: 10
             timeoutSeconds: 3
           livenessProbe:
             tcpSocket:
               port: 7233
-            initialDelaySeconds: 35
+            initialDelaySeconds: 30
             periodSeconds: 20
             timeoutSeconds: 5
+      volumes:
+        - name: config
+          configMap:
+            name: temporal-server-config
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: temporal-init-namespace
+  labels:
+    app.kubernetes.io/name: temporal
+    app.kubernetes.io/component: namespace-init
+spec:
+  backoffLimit: 10
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: temporal
+        app.kubernetes.io/component: namespace-init
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: init-default-ns
+          image: temporalio/admin-tools:1.32.1
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Waiting for Temporal Frontend to accept gRPC connections..."
+              until nc -z -v -w5 temporal-frontend 7233; do
+                sleep 2
+              done
+              echo "Temporal Frontend is online. Ensuring default namespace exists..."
+              sleep 4
+              temporal operator namespace create -n default --address temporal-frontend:7233 || true
+              echo "Default namespace verified."
