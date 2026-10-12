@@ -11,7 +11,7 @@ Triển khai nền tảng **Temporal Server v1.32.1** cùng **Temporal Web UI** 
 | **Dev** | `temporal-dev` | `https://dev-temporal.192.168.250.215.nip.io` | `temporal-frontend.temporal-dev.svc.cluster.local:7233` | 10Gi (`local-path`) |
 
 - **Web UI URL dự phòng**: `https://dev-temporal.192.168.250.215.sslip.io`
-- **Temporal Server Image**: `temporalio/auto-setup:1.32.1`
+- **Temporal Server Image**: `temporalio/server:1.32.1` (`AUTO_SETUP=true`)
 - **Temporal Web UI Image**: `temporalio/ui:2.34.0`
 - **Database**: PostgreSQL 15 (`postgres:15-alpine` StatefulSet với 2 database: `temporal` và `temporal_visibility`)
 - **Default Namespace**: `default` (tự động khởi tạo khi boot)
@@ -25,7 +25,7 @@ Triển khai nền tảng **Temporal Server v1.32.1** cùng **Temporal Web UI** 
    - Tự động chạy script `/docker-entrypoint-initdb.d/01-init-visibility.sh` để tạo database `temporal_visibility` bên cạnh `temporal`.
 
 2. **Temporal Server**:
-   - Sử dụng image `temporalio/auto-setup:1.32.1`.
+   - Sử dụng image `temporalio/server:1.32.1` với `AUTO_SETUP=true`.
    - Tự động chạy `temporal-sql-tool` để khởi tạo schema cho database chính và visibility database.
    - Chạy đầy đủ các role: Frontend (gRPC: 7233), History (6934), Matching (6935), Worker (6939).
    - Expose Prometheus metrics tại port 9090.
