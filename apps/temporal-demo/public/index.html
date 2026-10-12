@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Temporal TypeScript Demo — E-Commerce Order Fulfillment & Saga</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header / Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-logo">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">Temporal <span class="badge-ts">TypeScript</span></h1>
+          <p class="brand-subtitle">Durable Execution & Saga Orchestration Demo</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="cluster-badge">
+          <span class="status-dot pulsing"></span>
+          <span id="clusterStatus">Connected: temporal-dev</span>
+        </div>
+        <a id="temporalDashboardLink" href="https://dev-temporal.192.168.250.215.nip.io" target="_blank" rel="noopener noreferrer" class="btn-external">
+          <span>Temporal Web UI</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Grid -->
+  <main class="main-container">
+    <!-- Intro Banner -->
+    <section class="banner-card">
+      <div class="banner-content">
+        <h2>Temporal giải quyết bài toán gì trong thực tế?</h2>
+        <p>
+          Trong kiến trúc truyền thống, nếu ứng dụng gặp sự cố giữa lúc thanh toán và xuất kho, bạn phải tự viết database locks, message queue retry, và state machine phức tạp. 
+          Với <strong>Temporal TypeScript SDK</strong>, toàn bộ quy trình dưới đây được thực thi như một <strong>hàm code bình thường</strong>: tự động thử lại khi lỗi mạng, có thể <em>sleep</em> hoặc chờ người duyệt (Signal) hàng tuần mà không tốn CPU/RAM, và tự động bồi hoàn hoàn tiền (Saga) khi có sự cố.
+        </p>
+      </div>
+    </section>
+
+    <div class="layout-grid">
+      <!-- Left Column: Order Trigger Form -->
+      <section class="panel-card form-panel">
+        <div class="panel-header">
+          <div class="panel-icon">🛒</div>
+          <div>
+            <h3>Khởi chạy Order Workflow</h3>
+            <p>Tạo một đơn hàng mới và gửi lệnh khởi chạy sang Temporal Server</p>
+          </div>
+        </div>
+
+        <form id="orderForm" class="order-form">
+          <div class="form-group">
+            <label for="productSelect">Sản phẩm đặt mua</label>
+            <select id="productSelect" class="form-input">
+              <option value="Mechanical Keyboard Custom" data-price="189">Bàn phím cơ Custom Mechanical Pro ($189)</option>
+              <option value="MacBook Pro M4 Max 36GB" data-price="3199">MacBook Pro M4 Max 36GB ($3,199)</option>
+              <option value="Cloud GPU Server H100 80GB" data-price="950">Cloud GPU Server Node H100 ($950)</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="customerName">Khách hàng</label>
+              <input type="text" id="customerName" class="form-input" value="Alex Johnson" required>
+            </div>
+            <div class="form-group">
+              <label for="orderQuantity">Số lượng</label>
+              <input type="number" id="orderQuantity" class="form-input" value="1" min="1" max="10" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Mô phỏng tình huống sự cố (Fault Injection)</label>
+            <div class="checkbox-cards">
+              <label class="checkbox-card">
+                <input type="checkbox" id="simPaymentFailure">
+                <div class="card-content">
+                  <span class="card-title">❌ Lỗi Thanh Toán</span>
+                  <span class="card-desc">Thẻ bị từ chối ở bước Activity đầu tiên</span>
+                </div>
+              </label>
+
+              <label class="checkbox-card">
+                <input type="checkbox" id="simInventoryFailure">
+                <div class="card-content">
+                  <span class="card-title">🔄 Lỗi Kho & Kích hoạt Saga</span>
+                  <span class="card-desc">Hết hàng sau khi đã trừ tiền -> Kích hoạt tự động Hoàn Tiền (Compensation)</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <button type="submit" id="btnSubmitOrder" class="btn-primary">
+            <span>Đặt hàng & Khởi động Workflow</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+        </form>
+
+        <!-- Recent Orders Drawer -->
+        <div class="recent-orders-section">
+          <h4>Các đơn hàng gần đây</h4>
+          <div id="recentOrdersList" class="recent-orders-list">
+            <div class="empty-state">Chưa có đơn hàng nào được tạo.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Live Workflow Monitor -->
+      <section class="panel-card monitor-panel">
+        <div class="panel-header">
+          <div class="panel-icon">⚡</div>
+          <div class="header-info">
+            <div class="title-with-badge">
+              <h3 id="currentWorkflowTitle">Chi tiết Workflow: Chưa chọn</h3>
+              <span id="workflowStatusBadge" class="badge-status badge-idle">SẴN SÀNG</span>
+            </div>
+            <p id="workflowIdSubtitle">Nhấn đặt hàng để quan sát luồng thực thi thời gian thực</p>
+          </div>
+          <div class="header-action">
+            <a id="btnOpenInTemporal" href="#" target="_blank" rel="noopener noreferrer" class="btn-secondary hidden">
+              <span>Xem trên Temporal Dashboard</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Workflow Stepper -->
+        <div class="stepper-container">
+          <div class="stepper">
+            <!-- Step 1 -->
+            <div id="step-payment" class="step-item step-pending">
+              <div class="step-indicator">
+                <div class="step-icon">💳</div>
+                <div class="step-spinner"></div>
+              </div>
+              <div class="step-details">
+                <span class="step-name">1. Thanh toán</span>
+                <span class="step-meta">processPayment()</span>
+              </div>
+            </div>
+
+            <div class="step-connector"></div>
+
+            <!-- Step 2 -->
+            <div id="step-inventory" class="step-item step-pending">
+              <div class="step-indicator">
+                <div class="step-icon">📦</div>
+                <div class="step-spinner"></div>
+              </div>
+              <div class="step-details">
+                <span class="step-name">2. Khóa tồn kho</span>
+                <span class="step-meta">reserveInventory()</span>
+              </div>
+            </div>
+
+            <div class="step-connector"></div>
+
+            <!-- Step 3 -->
+            <div id="step-approval" class="step-item step-pending">
+              <div class="step-indicator">
+                <div class="step-icon">⏳</div>
+                <div class="step-spinner"></div>
+              </div>
+              <div class="step-details">
+                <span class="step-name">3. Chờ duyệt</span>
+                <span class="step-meta">Temporal Signal</span>
+              </div>
+            </div>
+
+            <div class="step-connector"></div>
+
+            <!-- Step 4 -->
+            <div id="step-shipping" class="step-item step-pending">
+              <div class="step-indicator">
+                <div class="step-icon">🚚</div>
+                <div class="step-spinner"></div>
+              </div>
+              <div class="step-details">
+                <span class="step-name">4. Giao hàng</span>
+                <span class="step-meta">dispatchShipping()</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Human Approval Interactive Signal Bar -->
+        <div id="signalActionBox" class="signal-box hidden">
+          <div class="signal-header">
+            <span class="signal-alert-icon">🔔</span>
+            <div>
+              <strong>Human-in-the-Loop: Workflow đang tạm dừng chờ bạn quyết định!</strong>
+              <p>Temporal Worker giữ nguyên bộ nhớ trạng thái và lắng nghe Signal (hoặc tự timeout sau 120s).</p>
+            </div>
+          </div>
+          <div class="signal-buttons">
+            <button id="btnApproveSignal" class="btn-success">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span>Gửi Signal: DUYỆT ĐƠN HÀNG</span>
+            </button>
+            <button id="btnCancelSignal" class="btn-danger">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+              <span>Gửi Signal: HỦY ĐƠN HÀNG (Kích hoạt Saga Rollback)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Compensation Alert Banner -->
+        <div id="sagaCompensationBox" class="compensation-box hidden">
+          <div class="compensation-icon">🔄</div>
+          <div>
+            <strong>Saga Compensation Đã Kích Hoạt!</strong>
+            <p id="sagaCompensationText">Hệ thống đã tự động gọi Activity hoàn tiền (refundPayment) để đưa tài khoản về trạng thái ban đầu an toàn 100%.</p>
+          </div>
+        </div>
+
+        <!-- Live Terminal / Logs Console -->
+        <div class="terminal-card">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <span></span><span></span><span></span>
+            </div>
+            <span class="terminal-title">Temporal Event & Activity Logs</span>
+            <span id="logCounter" class="terminal-badge">0 events</span>
+          </div>
+          <div id="terminalConsole" class="terminal-console">
+            <div class="terminal-line text-muted">Sẵn sàng nhận sự kiện từ Temporal Worker...</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

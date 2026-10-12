@@ -113,10 +113,17 @@ lab-rke2-gitops/
     │   ├── base/                       # Deployment, Service, Ingress, PVC 10Gi, Secret
     │   └── overlays/
     │       └── dev/                    # Dev environment (dev-dsh.192.168.250.215.nip.io)
-    └── temporal/                       # Temporal Workflow Engine v1.32.1 + Web UI (Dev environment)
-        ├── base/                       # Server (auto-setup 1.32.1), UI, PostgreSQL 15, Ingress, Secret
+    ├── temporal/                       # Temporal Workflow Engine v1.32.1 + Web UI (Dev environment)
+    │   ├── base/                       # Server (auto-setup 1.32.1), UI, PostgreSQL 15, Ingress, Secret
+    │   └── overlays/
+    │       └── dev/                    # Dev environment (dev-temporal.192.168.250.215.nip.io)
+    └── temporal-demo/                  # Temporal TypeScript E-Commerce Order Saga Demo (Dev environment)
+        ├── src/                        # Workflows, Activities, Worker, Express Server
+        ├── public/                     # Modern Web UI & Stepper Dashboard
+        ├── docker/                     # Dockerfile & build.sh
+        ├── base/                       # Web & Worker Deployments, Service, Ingress
         └── overlays/
-            └── dev/                    # Dev environment (dev-temporal.192.168.250.215.nip.io)
+            └── dev/                    # Dev environment (dev-temporal-demo.192.168.250.215.nip.io)
 ```
 
 ---

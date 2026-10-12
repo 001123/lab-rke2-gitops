@@ -54,6 +54,8 @@ validate_dir "apps/dsh/base"
 validate_dir "apps/dsh/overlays/dev"
 validate_dir "apps/temporal/base"
 validate_dir "apps/temporal/overlays/dev"
+validate_dir "apps/temporal-demo/base"
+validate_dir "apps/temporal-demo/overlays/dev"
 
 echo ""
 if [ "$FAILURES" -eq 0 ]; then

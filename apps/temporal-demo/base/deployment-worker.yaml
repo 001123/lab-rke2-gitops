@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temporal-demo-worker
+  labels:
+    app.kubernetes.io/name: temporal-demo
+    app.kubernetes.io/component: worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: temporal-demo
+      app.kubernetes.io/component: worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: temporal-demo
+        app.kubernetes.io/component: worker
+    spec:
+      containers:
+        - name: worker
+          image: registry.192.168.250.215.sslip.io/temporal-demo:latest
+          imagePullPolicy: Always
+          command:
+            - node
+            - dist/worker.js
+          env:
+            - name: TEMPORAL_ADDRESS
+              value: "temporal-frontend.temporal-dev.svc.cluster.local:7233"
+            - name: TEMPORAL_NAMESPACE
+              value: "default"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
